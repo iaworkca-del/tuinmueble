@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historial — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia }}</div>
+    <p>Historial de propiedades</p>
+  </div>
+  <a href="/" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
+</header>
+
+<div class="container">
+
+  <!-- Buscador -->
+  <div class="card">
+    <form action="/historial" method="get" style="display:flex; gap:0.6rem;">
+      <input type="text" name="busqueda" value="{{ busqueda }}"
+             placeholder="Buscar por dirección, ciudad, tipo, operación o agente..."
+             style="flex:1;" />
+      <button type="submit" class="btn-primary" style="width:auto; padding:0.6rem 1.5rem;">🔍 Buscar</button>
+      {% if busqueda %}
+      <a href="/historial" class="btn-secondary" style="display:flex; align-items:center; padding:0 1.2rem;">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if propiedades %}
+  <div class="historial-grid">
+    {% for p in propiedades %}
+    <a href="/historial/{{ p.id }}" class="historial-card">
+      {% if p.portada %}
+      <img src="{{ p.portada }}" alt="Portada" class="historial-img" />
+      {% else %}
+      <div class="historial-img historial-img-vacia">Sin imagen</div>
+      {% endif %}
+      <div class="historial-info">
+        <div class="historial-titulo">
+          {{ p.tipo_propiedad }}
+          <span class="badge {{ p.operacion | lower }}">{{ p.operacion }}</span>
+        </div>
+        <div class="historial-precio">USD ${{ "{:,.0f}".format(p.precio or 0) }}</div>
+        <div class="historial-ubic">{{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
+        <div class="historial-meta">{{ p.nombre_agente }} · {{ p.creado_en[:10] }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="text-align:center; color:#888;">
+    {% if busqueda %}
+    No se encontraron propiedades para "<strong>{{ busqueda }}</strong>".
+    {% else %}
+    Aún no has generado propiedades. <a href="/">Crea la primera</a>.
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+</body>
+</html>

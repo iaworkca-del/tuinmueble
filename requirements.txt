@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+openai
+anthropic
+python-dotenv
+jinja2
+aiofiles
+Pillow
+reportlab
+httpx
