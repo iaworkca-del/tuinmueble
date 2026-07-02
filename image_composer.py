@@ -188,27 +188,28 @@ def _componer_clasica(img, datos, branding, dorado, estilo):
 
     y_metricas = y_ubic + 50
     x_m = PAD
-    icon_size = 30
+    icon_size = 44
+    icon_w = 5
     f_metrica = _obtener_fuente_semibold(26)
 
     if datos.get("habitaciones"):
-        _icono_cama(draw, x_m, y_metricas, icon_size, acento)
-        draw.text((x_m + 44, y_metricas + 2), f"{datos['habitaciones']} Hab", font=f_metrica, fill=texto)
-        x_m += 172
+        _icono_cama(draw, x_m, y_metricas, icon_size, acento, width=icon_w)
+        draw.text((x_m + icon_size + 14, y_metricas + 8), f"{datos['habitaciones']} Hab", font=f_metrica, fill=texto)
+        x_m += 186
 
     if datos.get("banos"):
-        _icono_bano(draw, x_m, y_metricas, icon_size, acento)
-        draw.text((x_m + 44, y_metricas + 2), f"{datos['banos']} Baños", font=f_metrica, fill=texto)
-        x_m += 190
+        _icono_bano(draw, x_m, y_metricas, icon_size, acento, width=icon_w)
+        draw.text((x_m + icon_size + 14, y_metricas + 8), f"{datos['banos']} Baños", font=f_metrica, fill=texto)
+        x_m += 204
 
     if datos.get("metros_construidos"):
-        _icono_area(draw, x_m, y_metricas, icon_size, acento)
-        draw.text((x_m + 44, y_metricas + 2), f"{_num(datos['metros_construidos'])} m²", font=f_metrica, fill=texto)
-        x_m += 190
+        _icono_area(draw, x_m, y_metricas, icon_size, acento, width=icon_w)
+        draw.text((x_m + icon_size + 14, y_metricas + 8), f"{_num(datos['metros_construidos'])} m²", font=f_metrica, fill=texto)
+        x_m += 204
 
     if datos.get("estacionamientos"):
-        _icono_auto(draw, x_m, y_metricas, icon_size, acento)
-        draw.text((x_m + 44, y_metricas + 2), f"{datos['estacionamientos']} Estacionamiento", font=f_metrica, fill=texto)
+        _icono_auto(draw, x_m, y_metricas, icon_size, acento, width=icon_w)
+        draw.text((x_m + icon_size + 14, y_metricas + 8), f"{datos['estacionamientos']} Estacionamiento", font=f_metrica, fill=texto)
 
     y_agente = H - 76
     draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente_semibold(28), fill=acento)
