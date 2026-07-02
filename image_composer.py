@@ -11,25 +11,40 @@ LOGO_PATH = BASE_DIR / "static" / "logo.png"
 
 SIZE = 1080
 
+FONTS_DIR = BASE_DIR / "static" / "fonts"
+
 def _obtener_fuente(size: int, bold: bool = False):
-    """Obtiene fuente compatible Windows + Linux + Railway."""
-    system_fonts = [
+    """Obtiene fuente de marca (Poppins) con fallback a fuentes del sistema."""
+    candidatos = [
+        FONTS_DIR / ("Poppins-Bold.ttf" if bold else "Poppins-Regular.ttf"),
         "C:/Windows/Fonts/arialbd.ttf" if bold else "C:/Windows/Fonts/arial.ttf",
         "C:/Windows/Fonts/Arial Bold.ttf" if bold else "C:/Windows/Fonts/Arial.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
         "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
         "/usr/share/fonts/truetype/ubuntu/Ubuntu-Bold.ttf" if bold else "/usr/share/fonts/truetype/ubuntu/Ubuntu-Regular.ttf",
     ]
 
-    for ruta in system_fonts:
+    for ruta in candidatos:
         try:
+            ruta = str(ruta)
             if ruta and os.path.exists(ruta):
                 return ImageFont.truetype(ruta, size)
         except Exception:
             continue
 
     return ImageFont.load_default()
+
+
+def _obtener_fuente_semibold(size: int):
+    """Fuente semibold de marca para etiquetas/acentos, con fallback a bold."""
+    ruta = FONTS_DIR / "Poppins-SemiBold.ttf"
+    try:
+        if ruta.exists():
+            return ImageFont.truetype(str(ruta), size)
+    except Exception:
+        pass
+    return _obtener_fuente(size, bold=True)
 
 
 def _estilos(branding: dict, modo: str = "web") -> dict:
@@ -150,58 +165,54 @@ def _componer_clasica(img, datos, branding, dorado, estilo):
     if LOGO_PATH.exists():
         try:
             logo = Image.open(LOGO_PATH).convert("RGBA")
-            logo.thumbnail((120, 80), Image.LANCZOS)
+            logo.thumbnail((90, 90), Image.LANCZOS)
             img.paste(logo, (PAD, PAD), logo)
         except Exception:
             draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=texto)
     else:
         draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=texto)
 
-    draw.rectangle([(PAD, 100), (PAD + 220, 106)], fill=acento)
-
-    etiqueta = f"{datos.get('tipo_propiedad', '')} / {datos.get('operacion', '')}"
-    f_et = _obtener_fuente(34, bold=True)
+    etiqueta = f"{datos.get('tipo_propiedad', '')} en {datos.get('operacion', '')}"
+    f_et = _obtener_fuente_semibold(30)
     et_w = draw.textlength(etiqueta, font=f_et)
-    draw.text((W - PAD - et_w, PAD + 10), etiqueta, font=f_et, fill=acento)
+    draw.text((W - PAD - et_w, PAD + 14), etiqueta, font=f_et, fill=acento)
 
-    y_precio = H - 320
-    draw.text((PAD, y_precio), _precio_fmt(datos), font=_obtener_fuente(78, bold=True), fill=texto)
+    y_precio = H - 300
+    draw.text((PAD, y_precio), _precio_fmt(datos), font=_obtener_fuente(70, bold=True), fill=texto)
 
     ubicacion = f"{datos.get('direccion', '')}, {datos.get('ciudad_estado', '')}"
     if len(ubicacion) > 60:
         ubicacion = ubicacion[:57] + "..."
-    y_ubic = y_precio + 85
-    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(28), fill=subtexto)
+    y_ubic = y_precio + 82
+    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(24), fill=subtexto)
 
-    draw.rectangle([(PAD, y_ubic + 42), (PAD + 220, y_ubic + 48)], fill=acento)
-
-    y_metricas = y_ubic + 68
+    y_metricas = y_ubic + 50
     x_m = PAD
-    icon_size = 34
+    icon_size = 30
+    f_metrica = _obtener_fuente_semibold(26)
 
     if datos.get("habitaciones"):
         _icono_cama(draw, x_m, y_metricas, icon_size, acento)
-        draw.text((x_m + 50, y_metricas + 4), f"{datos['habitaciones']} Hab", font=_obtener_fuente(28, bold=True), fill=texto)
-        x_m += 190
+        draw.text((x_m + 44, y_metricas + 2), f"{datos['habitaciones']} Hab", font=f_metrica, fill=texto)
+        x_m += 172
 
     if datos.get("banos"):
         _icono_bano(draw, x_m, y_metricas, icon_size, acento)
-        draw.text((x_m + 50, y_metricas + 4), f"{datos['banos']} Baños", font=_obtener_fuente(28, bold=True), fill=texto)
-        x_m += 220
+        draw.text((x_m + 44, y_metricas + 2), f"{datos['banos']} Baños", font=f_metrica, fill=texto)
+        x_m += 190
 
     if datos.get("metros_construidos"):
         _icono_area(draw, x_m, y_metricas, icon_size, acento)
-        draw.text((x_m + 50, y_metricas + 4), f"{_num(datos['metros_construidos'])} m²", font=_obtener_fuente(28, bold=True), fill=texto)
-        x_m += 220
+        draw.text((x_m + 44, y_metricas + 2), f"{_num(datos['metros_construidos'])} m²", font=f_metrica, fill=texto)
+        x_m += 190
 
     if datos.get("estacionamientos"):
         _icono_auto(draw, x_m, y_metricas, icon_size, acento)
-        draw.text((x_m + 50, y_metricas + 4), f"{datos['estacionamientos']} Est.", font=_obtener_fuente(28, bold=True), fill=texto)
+        draw.text((x_m + 44, y_metricas + 2), f"{datos['estacionamientos']} Estacionamiento", font=f_metrica, fill=texto)
 
-    y_agente = H - 90
-    draw.rectangle([(PAD, y_agente - 10), (PAD + 270, y_agente - 4)], fill=acento)
-    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(30, bold=True), fill=acento)
-    draw.text((PAD, y_agente + 36), datos.get("telefono_agente", ""), font=_obtener_fuente(26), fill=texto)
+    y_agente = H - 76
+    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente_semibold(28), fill=acento)
+    draw.text((PAD, y_agente + 34), datos.get("telefono_agente", ""), font=_obtener_fuente(24), fill=texto)
 
     return img
 

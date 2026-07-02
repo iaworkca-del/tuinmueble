@@ -11,7 +11,7 @@ FONDO_PATH = BASE_DIR / "static" / "fondo.jpg"
 DEFAULTS = {
     "nombre_agencia": "Mi Propiedad",
     "color_primario": "#1a3a5c",
-    "color_secundario": "#c8a45a",
+    "color_secundario": "#b1b65d",
     "nombre_agente": "",
     "telefono_agente": "",
     "email_agente": "",
