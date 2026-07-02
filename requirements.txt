@@ -9,3 +9,14 @@ aiofiles
 Pillow
 reportlab
 httpx
+aiofiles
+anthropic
+fastapi
+httpx
+jinja2
+openai
+Pillow
+python-dotenv
+python-multipart
+reportlab
+uvicorn[standard]

@@ -6,6 +6,7 @@ DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
 BRANDING_FILE = DATA_DIR / "branding.json"
 LOGO_PATH = BASE_DIR / "static" / "logo.png"
+FONDO_PATH = BASE_DIR / "static" / "fondo.jpg"
 
 DEFAULTS = {
     "nombre_agencia": "Mi Propiedad",
@@ -14,21 +15,42 @@ DEFAULTS = {
     "nombre_agente": "",
     "telefono_agente": "",
     "email_agente": "",
+    "fondo_opacidad": "30",  # visibilidad del fondo 0-100 (0=tenue, 100=muy visible)
+    "plantilla": "clasica",  # clasica, elegante, moderna, impacto
 }
 
 
-def get_branding() -> dict:
+def _cargar_guardado() -> dict:
     data = dict(DEFAULTS)
     if BRANDING_FILE.exists():
         try:
-            data.update(json.loads(BRANDING_FILE.read_text(encoding="utf-8")))
+            guardado = json.loads(BRANDING_FILE.read_text(encoding="utf-8"))
+            for clave in DEFAULTS:
+                if clave in guardado:
+                    data[clave] = guardado[clave]
         except Exception:
             pass
     return data
 
 
+def fondo_url() -> str:
+    """URL del fondo con cache-bust, o '' si no hay fondo."""
+    if FONDO_PATH.exists():
+        try:
+            return f"/static/fondo.jpg?v={int(FONDO_PATH.stat().st_mtime)}"
+        except Exception:
+            return "/static/fondo.jpg"
+    return ""
+
+
+def get_branding() -> dict:
+    data = _cargar_guardado()
+    data["fondo"] = fondo_url()  # campo calculado (no se persiste)
+    return data
+
+
 def guardar_branding(nuevos: dict) -> dict:
-    data = get_branding()
+    data = _cargar_guardado()
     for clave in DEFAULTS:
         valor = nuevos.get(clave)
         if valor is not None and str(valor).strip() != "":
@@ -51,3 +73,7 @@ def hex_to_rgb(h: str) -> tuple:
 
 def logo_existe() -> bool:
     return LOGO_PATH.exists()
+
+
+def fondo_existe() -> bool:
+    return FONDO_PATH.exists()

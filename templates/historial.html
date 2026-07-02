@@ -6,7 +6,11 @@
   <title>Historial — {{ branding.nombre_agencia }}</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
-<body>
+<body class="{{ 'con-fondo' if branding and branding.fondo else '' }}">
+{% if branding and branding.fondo %}
+<div class="parallax-fondo" style="background-image:url('{{ branding.fondo }}')"></div>
+<div class="parallax-velo" style="opacity:{{ ((100 - branding.fondo_opacidad|int) / 100) }}"></div>
+{% endif %}
 
 <header style="justify-content:space-between;">
   <div>
@@ -64,5 +68,6 @@
 
 </div>
 
+<script src="/static/animaciones.js"></script>
 </body>
 </html>

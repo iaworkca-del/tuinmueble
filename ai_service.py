@@ -1,4 +1,5 @@
 import os
+import time
 import anthropic
 from dotenv import load_dotenv
 
@@ -71,11 +72,45 @@ Mensaje para enviar por WhatsApp ({cfg_long['social']}). Directo, con emojis, f�
 Publicación para Facebook Marketplace. Primero una línea de TÍTULO corto y llamativo, luego el cuerpo orientado a venta directa con los datos clave y llamado a la acción. Sin hashtags.
 [/FACEBOOK]"""
 
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    # Reintentos exponenciales con jitter ante fallos temporales (rate limits, timeouts)
+    import random
+
+    ultimo_error = None
+    response = None
+    max_attempts = 5
+    base_delay = 1.0
+
+    for intento in range(max_attempts):
+        try:
+            response = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            break
+        except Exception as e:
+            ultimo_error = e
+            msg = str(e).lower()
+            # Errores 403/forbidden no son recuperables: devolver mensaje claro
+            if "403" in msg or "forbidden" in msg or "request not allowed" in msg:
+                raise RuntimeError(
+                    "El servicio de IA devolvió 403 (forbidden).\n"
+                    "Verifica que la variable de entorno `ANTHROPIC_API_KEY` esté correcta, "
+                    "que la clave tenga permisos para el modelo solicitado y que la cuenta/plan esté activa. "
+                    f"Detalle: {e}"
+                )
+            # Si es un error recuperable, esperar con backoff exponencial + jitter
+            delay = base_delay * (2 ** intento)
+            jitter = random.uniform(0, 0.5 * delay)
+            total_sleep = delay + jitter
+            print(f"ai_service: intento {intento+1}/{max_attempts} falló: {e}. reintentando en {total_sleep:.1f}s")
+            time.sleep(total_sleep)
+
+    if response is None:
+        raise RuntimeError(
+            "El servicio de IA está temporalmente ocupado. Intenta generar de nuevo en unos segundos. "
+            f"(detalle: {ultimo_error})"
+        )
 
     texto = response.content[0].text
 

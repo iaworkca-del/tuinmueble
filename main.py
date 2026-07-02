@@ -19,7 +19,7 @@ from image_composer import (
 )
 from pdf_service import generar_pdf
 from instagram_service import publicar_instagram
-from branding import get_branding, guardar_branding, logo_existe, LOGO_PATH
+from branding import get_branding, guardar_branding, logo_existe, fondo_existe, LOGO_PATH, FONDO_PATH
 from db import init_db, guardar_propiedad, listar_propiedades, obtener_propiedad
 
 load_dotenv()
@@ -99,7 +99,10 @@ async def guardar_configuracion(
     nombre_agente: str = Form(""),
     telefono_agente: str = Form(""),
     email_agente: str = Form(""),
+    fondo_opacidad: str = Form("30"),
+    plantilla: str = Form("clasica"),
     logo: UploadFile = File(None),
+    fondo: UploadFile = File(None),
 ):
     guardar_branding({
         "nombre_agencia": nombre_agencia,
@@ -108,10 +111,22 @@ async def guardar_configuracion(
         "nombre_agente": nombre_agente,
         "telefono_agente": telefono_agente,
         "email_agente": email_agente,
+        "fondo_opacidad": fondo_opacidad,
+        "plantilla": plantilla,
     })
     if logo and logo.filename:
         with LOGO_PATH.open("wb") as f:
             shutil.copyfileobj(logo.file, f)
+    if fondo and fondo.filename:
+        # Convertir a JPEG para un fondo consistente
+        try:
+            from PIL import Image
+            img = Image.open(fondo.file).convert("RGB")
+            img.save(str(FONDO_PATH), "JPEG", quality=85)
+        except Exception:
+            with FONDO_PATH.open("wb") as f:
+                fondo.file.seek(0)
+                shutil.copyfileobj(fondo.file, f)
     return RedirectResponse(url="/configuracion?guardado=1", status_code=303)
 
 
@@ -243,12 +258,21 @@ async def generar(
         if collage_url:
             collage_descarga_url = _descarga(collage_url)
 
-    contenido = generar_contenido(datos, tono=tono, longitud=longitud)
-
-    # PDF descargable con toda la ficha de la propiedad
-    pdf_descarga_url = generar_pdf(
-        datos, contenido["descripcion"], portada_path, extras_paths
-    )
+    try:
+        contenido = generar_contenido(datos, tono=tono, longitud=longitud)
+        # PDF descargable con toda la ficha de la propiedad
+        pdf_descarga_url = generar_pdf(
+            datos, contenido["descripcion"], portada_path, extras_paths
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context={"branding": get_branding(), "mensaje": str(e)},
+            status_code=503,
+        )
 
     payload = {
         "portada_url": portada_url,

@@ -4,5 +4,7 @@
   "color_secundario": "#c1c85b",
   "nombre_agente": "Francisco A Barreto",
   "telefono_agente": "+584148960164",
-  "email_agente": "tuagente@gmail.com"
+  "email_agente": "tuagente@gmail.com",
+  "fondo_opacidad": "59",
+  "plantilla": "clasica"
 }

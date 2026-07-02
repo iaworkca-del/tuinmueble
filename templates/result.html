@@ -6,7 +6,11 @@
   <title>Resultado — Mi Propiedad</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
-<body>
+<body class="{{ 'con-fondo' if branding and branding.fondo else '' }}">
+{% if branding and branding.fondo %}
+<div class="parallax-fondo" style="background-image:url('{{ branding.fondo }}')"></div>
+<div class="parallax-velo" style="opacity:{{ ((100 - branding.fondo_opacidad|int) / 100) }}"></div>
+{% endif %}
 
 <header style="justify-content:space-between;">
   <div>
@@ -309,10 +313,11 @@
       const texto = txt.innerText;
       const nombres = imagenesSeleccionadas();
       const original = wa.innerHTML;
-      wa.innerHTML = '⏳ Preparando...';
+      wa.innerHTML = '⏳ Enviando imágenes...';
       wa.disabled = true;
 
       try {
+        // Paso 1: compartir imágenes primero
         const archivos = [];
         for (const n of nombres) {
           const resp = await fetch('/static/uploads/' + n);
@@ -320,7 +325,11 @@
           archivos.push(new File([blob], n, { type: blob.type || 'image/jpeg' }));
         }
         if (archivos.length && navigator.canShare && navigator.canShare({ files: archivos })) {
-          await navigator.share({ files: archivos, text: texto });
+          await navigator.share({ files: archivos });
+          // Paso 2: después de las imágenes, compartir el texto
+          wa.innerHTML = '⏳ Abriendo texto...';
+          await new Promise(function(r) { setTimeout(r, 800); });
+          window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
           wa.innerHTML = original;
           wa.disabled = false;
           return;
@@ -329,7 +338,7 @@
         // si el usuario cancela o falla, caemos al modo texto
       }
 
-      // Fallback: WhatsApp con solo texto (los navegadores de escritorio no permiten adjuntar imágenes por enlace)
+      // Fallback: WhatsApp con solo texto
       window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
       wa.innerHTML = original;
       wa.disabled = false;
@@ -351,6 +360,7 @@
     });
   })();
 </script>
+<script src="/static/animaciones.js"></script>
 
 </body>
 </html>

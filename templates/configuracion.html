@@ -6,7 +6,11 @@
   <title>Configuración — Mi Propiedad</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
-<body>
+<body class="{{ 'con-fondo' if branding and branding.fondo else '' }}">
+{% if branding and branding.fondo %}
+<div class="parallax-fondo" style="background-image:url('{{ branding.fondo }}')"></div>
+<div class="parallax-velo" style="opacity:{{ ((100 - branding.fondo_opacidad|int) / 100) }}"></div>
+{% endif %}
 
 <header>
   <div>
@@ -59,6 +63,100 @@
           </div>
           {% endif %}
         </div>
+        <div class="form-group full">
+          <label>Imagen de fondo (efecto parallax)</label>
+          <label class="file-label" for="fondo">
+            <span>Clic para subir una imagen de fondo</span>
+            <small>Se mostrará detrás de la app con efecto de movimiento</small>
+          </label>
+          <input type="file" name="fondo" id="fondo" accept="image/*" />
+          <div class="file-name" id="fondo-name"></div>
+          {% if branding.fondo %}
+          <div style="margin-top:0.6rem;">
+            <span style="font-size:0.85rem; color:#666;">Fondo actual:</span><br/>
+            <img src="{{ branding.fondo }}" alt="Fondo actual"
+                 style="max-height:120px; width:100%; object-fit:cover; margin-top:0.4rem; border-radius:6px;" />
+          </div>
+          <div style="margin-top:1rem;">
+            <label for="fondo_opacidad" style="font-size:0.9rem;">
+              Visibilidad del fondo: <strong id="opacidad-valor">{{ branding.fondo_opacidad }}%</strong>
+            </label>
+            <input type="range" name="fondo_opacidad" id="fondo_opacidad"
+                   min="0" max="100" value="{{ branding.fondo_opacidad }}"
+                   style="width:100%; margin-top:0.4rem; accent-color:{{ branding.color_secundario }};" />
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#999;">
+              <span>Más tenue</span><span>Más visible</span>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Plantilla de imagen</h2>
+      <p style="font-size:0.85rem; color:#888; margin-bottom:1rem;">
+        Elige el diseño que se aplicará a las fotos de tus propiedades.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
+        {% set pl = branding.plantilla or 'clasica' %}
+        <label class="plantilla-opcion{{ ' activa' if pl == 'original' else '' }}" for="pl_original">
+          <input type="radio" name="plantilla" id="pl_original" value="original"
+                 {{ 'checked' if pl == 'original' else '' }} />
+          <div class="plantilla-preview original-prev">
+            <div class="pp-foto-icon">&#128247;</div>
+          </div>
+          <span class="plantilla-nombre">Original</span>
+          <small>Foto limpia, sin overlay ni texto</small>
+        </label>
+        <label class="plantilla-opcion{{ ' activa' if pl == 'clasica' else '' }}" for="pl_clasica">
+          <input type="radio" name="plantilla" id="pl_clasica" value="clasica"
+                 {{ 'checked' if pl == 'clasica' else '' }} />
+          <div class="plantilla-preview clasica-prev">
+            <div class="pp-top"></div>
+            <div class="pp-bottom">
+              <div class="pp-precio"></div>
+              <div class="pp-iconos"></div>
+            </div>
+          </div>
+          <span class="plantilla-nombre">Clásica</span>
+          <small>Franjas arriba y abajo, logo e íconos</small>
+        </label>
+        <label class="plantilla-opcion{{ ' activa' if pl == 'elegante' else '' }}" for="pl_elegante">
+          <input type="radio" name="plantilla" id="pl_elegante" value="elegante"
+                 {{ 'checked' if pl == 'elegante' else '' }} />
+          <div class="plantilla-preview elegante-prev">
+            <div class="pp-marco"></div>
+            <div class="pp-center">
+              <div class="pp-precio"></div>
+              <div class="pp-linea"></div>
+            </div>
+          </div>
+          <span class="plantilla-nombre">Elegante</span>
+          <small>Minimalista, marco dorado centrado</small>
+        </label>
+        <label class="plantilla-opcion{{ ' activa' if pl == 'moderna' else '' }}" for="pl_moderna">
+          <input type="radio" name="plantilla" id="pl_moderna" value="moderna"
+                 {{ 'checked' if pl == 'moderna' else '' }} />
+          <div class="plantilla-preview moderna-prev">
+            <div class="pp-barra"></div>
+            <div class="pp-acento"></div>
+          </div>
+          <span class="plantilla-nombre">Moderna</span>
+          <small>Barra lateral con datos sobre color</small>
+        </label>
+        <label class="plantilla-opcion{{ ' activa' if pl == 'impacto' else '' }}" for="pl_impacto">
+          <input type="radio" name="plantilla" id="pl_impacto" value="impacto"
+                 {{ 'checked' if pl == 'impacto' else '' }} />
+          <div class="plantilla-preview impacto-prev">
+            <div class="pp-diagonal"></div>
+            <div class="pp-center">
+              <div class="pp-precio-grande"></div>
+            </div>
+          </div>
+          <span class="plantilla-nombre">Impacto</span>
+          <small>Precio grande, acento diagonal</small>
+        </label>
       </div>
     </div>
 
@@ -97,7 +195,24 @@
   document.getElementById('logo').addEventListener('change', function () {
     document.getElementById('logo-name').textContent = this.files[0] ? this.files[0].name : '';
   });
+  document.getElementById('fondo').addEventListener('change', function () {
+    document.getElementById('fondo-name').textContent = this.files[0] ? this.files[0].name : '';
+  });
+  document.querySelectorAll('.plantilla-opcion input[type="radio"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      document.querySelectorAll('.plantilla-opcion').forEach(function(l) { l.classList.remove('activa'); });
+      r.closest('.plantilla-opcion').classList.add('activa');
+    });
+  });
+  var sliderOp = document.getElementById('fondo_opacidad');
+  if (sliderOp) {
+    sliderOp.addEventListener('input', function () {
+      document.getElementById('opacidad-valor').textContent = this.value + '%';
+      var velo = document.querySelector('.parallax-velo');
+      if (velo) velo.style.opacity = 1 - this.value / 100;
+    });
+  }
 </script>
-
+<script src="/static/animaciones.js"></script>
 </body>
 </html>
