@@ -148,14 +148,14 @@ def _componer_clasica(img, datos, branding, dorado, estilo):
     franja_top = Image.new("RGBA", (W, 220), (0, 0, 0, 0))
     dt = ImageDraw.Draw(franja_top)
     for y in range(220):
-        alpha = int(150 * (y / 220))
+        alpha = int(90 * (y / 220))
         dt.rectangle([(0, y), (W, y + 1)], fill=(0, 0, 0, alpha))
     overlay.paste(franja_top, (0, 0))
 
     franja_bot = Image.new("RGBA", (W, 360), (0, 0, 0, 0))
     db = ImageDraw.Draw(franja_bot)
     for y in range(360):
-        alpha = int(220 * ((360 - y) / 360))
+        alpha = int(155 * ((360 - y) / 360))
         db.rectangle([(0, y), (W, y + 1)], fill=(0, 0, 0, alpha))
     overlay.paste(franja_bot, (0, H - 360))
 
