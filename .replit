@@ -38,3 +38,6 @@ externalPort = 80
 
 [userenv.shared]
 SESSION_SECRET_KEY = "e5d40795550c632bc83f1e28d138ebaec4e66faca94741c0b021db2919bfdfe6"
+
+[deployment]
+deploymentTarget = "cloudrun"
