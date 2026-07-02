@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block titulo %}{{ branding.nombre_agencia }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/public.css" />
+  <style>
+    :root {
+      --pub-primario: {{ branding.color_primario }};
+      --pub-secundario: {{ branding.color_secundario }};
+    }
+  </style>
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="publico">
+
+<nav class="pub-nav">
+  <a href="/" class="marca">{{ branding.nombre_agencia }}<span>.</span></a>
+  <div class="links">
+    <a href="/" class="link">Inicio</a>
+    <a href="/servicios" class="link">Servicios</a>
+    <a href="/catalogo" class="link">Propiedades</a>
+    <a href="/login" class="btn-acceso">Acceso agentes</a>
+  </div>
+</nav>
+
+{% block contenido %}{% endblock %}
+
+<footer class="pub-footer">
+  <p>&copy; {{ anio }} {{ branding.nombre_agencia }}. Todos los derechos reservados.</p>
+  {% if branding.telefono_agente %}
+  <p>Contáctanos: <a href="https://wa.me/{{ branding.telefono_agente | replace('+','') | replace(' ','') }}">{{ branding.telefono_agente }}</a>
+  {% if branding.email_agente %} · {{ branding.email_agente }}{% endif %}</p>
+  {% endif %}
+</footer>
+
+<script src="/static/js/parallax.js"></script>
+{% block scripts_extra %}{% endblock %}
+</body>
+</html>

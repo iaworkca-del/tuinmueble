@@ -1,0 +1,43 @@
+{% extends "public/base.html" %}
+{% block titulo %}Servicios — {{ branding.nombre_agencia }}{% endblock %}
+
+{% block contenido %}
+<section class="pub-hero" style="height:50vh; min-height:340px;">
+  <div class="pub-hero-bg" style="background-image:url('{{ branding.fondo if branding.fondo else '/static/logo.png' }}');"></div>
+  <div class="pub-hero-overlay"></div>
+  <div class="pub-hero-contenido">
+    <h1>Nuestros <span>servicios</span></h1>
+    <p>Todo lo que necesitas para comprar, vender o alquilar con confianza.</p>
+  </div>
+</section>
+
+<section class="pub-seccion pub-reveal">
+  <div class="pub-servicios-grid">
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">🏠</div>
+      <h3>{{ branding.servicio_1_titulo }}</h3>
+      <p>{{ branding.servicio_1_desc }}</p>
+    </div>
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">🔑</div>
+      <h3>{{ branding.servicio_2_titulo }}</h3>
+      <p>{{ branding.servicio_2_desc }}</p>
+    </div>
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">📊</div>
+      <h3>{{ branding.servicio_3_titulo }}</h3>
+      <p>{{ branding.servicio_3_desc }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="pub-cta pub-reveal">
+  <h2>¿Tienes dudas sobre tu propiedad?</h2>
+  <p>Conversemos y te asesoramos sin compromiso.</p>
+  {% if branding.telefono_agente %}
+  <a href="https://wa.me/{{ branding.telefono_agente | replace('+','') | replace(' ','') }}" class="pub-btn pub-btn-dorado">Hablar por WhatsApp</a>
+  {% else %}
+  <a href="/catalogo" class="pub-btn pub-btn-dorado">Ver propiedades</a>
+  {% endif %}
+</section>
+{% endblock %}

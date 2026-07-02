@@ -17,7 +17,10 @@
     <div class="logo-text">{{ branding.nombre_agencia }}</div>
     <p>Historial de propiedades</p>
   </div>
-  <a href="/" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
 </header>
 
 <div class="container">
@@ -38,7 +41,8 @@
   {% if propiedades %}
   <div class="historial-grid">
     {% for p in propiedades %}
-    <a href="/historial/{{ p.id }}" class="historial-card">
+    <div class="historial-card" style="position:relative;">
+      <a href="/historial/{{ p.id }}" style="display:block; color:inherit; text-decoration:none;">
       {% if p.portada %}
       <img src="{{ p.portada }}" alt="Portada" class="historial-img" />
       {% else %}
@@ -53,7 +57,14 @@
         <div class="historial-ubic">{{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
         <div class="historial-meta">{{ p.nombre_agente }} · {{ p.creado_en[:10] }}</div>
       </div>
-    </a>
+      </a>
+      <form action="/historial/{{ p.id }}/publicar" method="post" style="padding:0 1.2rem 1rem;">
+        <input type="hidden" name="publicado" value="{{ 0 if p.publicado else 1 }}" />
+        <button type="submit" class="btn-secondary" style="width:100%; font-size:0.8rem; {{ 'background:#27ae60; color:#fff;' if p.publicado else '' }}">
+          {% if p.publicado %}✅ Visible en catálogo público{% else %}Publicar en catálogo público{% endif %}
+        </button>
+      </form>
+    </div>
     {% endfor %}
   </div>
   {% else %}
@@ -61,7 +72,7 @@
     {% if busqueda %}
     No se encontraron propiedades para "<strong>{{ busqueda }}</strong>".
     {% else %}
-    Aún no has generado propiedades. <a href="/">Crea la primera</a>.
+    Aún no has generado propiedades. <a href="/panel">Crea la primera</a>.
     {% endif %}
   </div>
   {% endif %}

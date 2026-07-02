@@ -1,0 +1,29 @@
+{% extends "public/base.html" %}
+{% block titulo %}Catálogo de propiedades — {{ branding.nombre_agencia }}{% endblock %}
+
+{% block contenido %}
+<section class="pub-seccion" style="padding-top:8rem;">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Catálogo</div>
+    <h2>Todas nuestras propiedades</h2>
+  </div>
+  <div class="pub-catalogo-grid">
+    {% for p in propiedades %}
+    <a href="/catalogo/{{ p.id }}" class="pub-prop-card">
+      {% if p.portada %}
+      <img src="{{ p.portada }}" class="pub-prop-img" alt="{{ p.tipo_propiedad }}" />
+      {% else %}
+      <div class="pub-prop-img"></div>
+      {% endif %}
+      <div class="pub-prop-body">
+        <span class="pub-prop-badge">{{ p.operacion }}</span>
+        <div class="pub-prop-precio">USD ${{ "{:,.0f}".format(p.precio or 0) }}</div>
+        <div class="pub-prop-ubic">{{ p.tipo_propiedad }} · {{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
+      </div>
+    </a>
+    {% else %}
+    <div class="pub-prop-vacio">Muy pronto publicaremos nuestras propiedades disponibles.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

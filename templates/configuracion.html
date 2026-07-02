@@ -12,10 +12,14 @@
 <div class="parallax-velo" style="opacity:{{ ((100 - branding.fondo_opacidad|int) / 100) }}"></div>
 {% endif %}
 
-<header>
+<header style="justify-content:space-between;">
   <div>
     <div class="logo-text">{{ branding.nombre_agencia }}</div>
     <p>Configuración de marca</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
   </div>
 </header>
 
@@ -184,9 +188,50 @@
       </div>
     </div>
 
+    <div class="card">
+      <h2>Contenido del sitio público</h2>
+      <p style="font-size:0.85rem; color:#888; margin-bottom:0.8rem;">
+        Este texto se muestra en tu página pública (inicio y servicios). Puedes editarlo cuando quieras.
+      </p>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="eslogan">Eslogan principal</label>
+          <input type="text" name="eslogan" id="eslogan" value="{{ branding.eslogan }}" />
+        </div>
+        <div class="form-group full">
+          <label for="descripcion_agencia">Descripción de la agencia</label>
+          <textarea name="descripcion_agencia" id="descripcion_agencia" rows="4">{{ branding.descripcion_agencia }}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="servicio_1_titulo">Servicio 1 — título</label>
+          <input type="text" name="servicio_1_titulo" id="servicio_1_titulo" value="{{ branding.servicio_1_titulo }}" />
+        </div>
+        <div class="form-group full">
+          <label for="servicio_1_desc">Servicio 1 — descripción</label>
+          <textarea name="servicio_1_desc" id="servicio_1_desc" rows="2">{{ branding.servicio_1_desc }}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="servicio_2_titulo">Servicio 2 — título</label>
+          <input type="text" name="servicio_2_titulo" id="servicio_2_titulo" value="{{ branding.servicio_2_titulo }}" />
+        </div>
+        <div class="form-group full">
+          <label for="servicio_2_desc">Servicio 2 — descripción</label>
+          <textarea name="servicio_2_desc" id="servicio_2_desc" rows="2">{{ branding.servicio_2_desc }}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="servicio_3_titulo">Servicio 3 — título</label>
+          <input type="text" name="servicio_3_titulo" id="servicio_3_titulo" value="{{ branding.servicio_3_titulo }}" />
+        </div>
+        <div class="form-group full">
+          <label for="servicio_3_desc">Servicio 3 — descripción</label>
+          <textarea name="servicio_3_desc" id="servicio_3_desc" rows="2">{{ branding.servicio_3_desc }}</textarea>
+        </div>
+      </div>
+    </div>
+
     <div style="display:flex; gap:0.6rem;">
       <button type="submit" class="btn-primary" style="flex:1;">💾 Guardar configuración</button>
-      <a href="/" class="btn-secondary" style="display:flex; align-items:center; padding:0 1.5rem;">Volver</a>
+      <a href="/panel" class="btn-secondary" style="display:flex; align-items:center; padding:0 1.5rem;">Volver</a>
     </div>
   </form>
 </div>

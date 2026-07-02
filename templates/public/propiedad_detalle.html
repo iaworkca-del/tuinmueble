@@ -1,0 +1,58 @@
+{% extends "public/base.html" %}
+{% block titulo %}{{ datos.tipo_propiedad }} en {{ datos.operacion }} — {{ branding.nombre_agencia }}{% endblock %}
+
+{% block contenido %}
+<section class="pub-detalle-hero" style="background-image:url('{{ portada_url or portada_compuesta_url }}');">
+  <div class="pub-detalle-hero-info">
+    <span class="pub-prop-badge">{{ datos.operacion }}</span>
+    <h1>{{ datos.tipo_propiedad }} — USD ${{ "{:,.0f}".format(datos.precio or 0) }}</h1>
+    <p>{{ datos.direccion }}{% if datos.ciudad_estado %}, {{ datos.ciudad_estado }}{% endif %}</p>
+  </div>
+</section>
+
+<section class="pub-detalle-body">
+  <div class="pub-detalle-grid">
+    <div>
+      <div class="pub-detalle-metricas">
+        {% if datos.habitaciones %}
+        <div class="pub-detalle-metrica"><strong>{{ datos.habitaciones }}</strong><span>Habitaciones</span></div>
+        {% endif %}
+        {% if datos.banos %}
+        <div class="pub-detalle-metrica"><strong>{{ datos.banos }}</strong><span>Baños</span></div>
+        {% endif %}
+        {% if datos.metros_construidos %}
+        <div class="pub-detalle-metrica"><strong>{{ datos.metros_construidos }} m²</strong><span>Construidos</span></div>
+        {% endif %}
+        {% if datos.estacionamientos %}
+        <div class="pub-detalle-metrica"><strong>{{ datos.estacionamientos }}</strong><span>Estacionamiento</span></div>
+        {% endif %}
+      </div>
+
+      <h3 style="color:var(--pub-primario); margin-bottom:0.6rem;">Descripción</h3>
+      <p style="line-height:1.7; color:#444; white-space:pre-line;">{{ descripcion }}</p>
+
+      {% if extras_urls %}
+      <h3 style="color:var(--pub-primario); margin:2rem 0 0.6rem;">Galería</h3>
+      <div class="pub-detalle-galeria">
+        {% for u in extras_urls %}
+        <img src="{{ u }}" alt="Foto de la propiedad" />
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="pub-contacto-card">
+      <h3>¿Te interesa esta propiedad?</h3>
+      <p style="color:#666; font-size:0.9rem;">{{ datos.nombre_agente }}</p>
+      {% if datos.telefono_agente %}
+      <a href="https://wa.me/{{ datos.telefono_agente | replace('+','') | replace(' ','') }}?text=Hola,%20me%20interesa%20la%20propiedad%20en%20{{ datos.direccion | urlencode }}"
+         class="pub-btn pub-btn-dorado">💬 Escribir por WhatsApp</a>
+      {% endif %}
+      {% if datos.email_agente %}
+      <a href="mailto:{{ datos.email_agente }}" class="pub-btn pub-btn-outline" style="color:var(--pub-primario); border-color:var(--pub-primario);">✉ Enviar correo</a>
+      {% endif %}
+      <a href="/catalogo" class="pub-btn pub-btn-outline" style="color:var(--pub-primario); border-color:var(--pub-primario);">← Volver al catálogo</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

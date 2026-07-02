@@ -29,7 +29,25 @@ def init_db():
                 precio REAL,
                 nombre_agente TEXT,
                 portada TEXT,
-                payload TEXT
+                payload TEXT,
+                publicado INTEGER DEFAULT 0
+            )
+            """
+        )
+        columnas = [r["name"] for r in conn.execute("PRAGMA table_info(propiedades)").fetchall()]
+        if "publicado" not in columnas:
+            conn.execute("ALTER TABLE propiedades ADD COLUMN publicado INTEGER DEFAULT 0")
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS agentes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                nombre_completo TEXT,
+                es_admin INTEGER DEFAULT 0,
+                activo INTEGER DEFAULT 1,
+                creado_en TEXT
             )
             """
         )
@@ -63,7 +81,7 @@ def guardar_propiedad(payload: dict) -> int:
 def listar_propiedades(busqueda: str = None) -> list:
     sql = (
         "SELECT id, creado_en, tipo_propiedad, operacion, direccion, "
-        "ciudad_estado, precio, nombre_agente, portada FROM propiedades"
+        "ciudad_estado, precio, nombre_agente, portada, publicado FROM propiedades"
     )
     params = ()
     if busqueda:
@@ -78,6 +96,18 @@ def listar_propiedades(busqueda: str = None) -> list:
         return [dict(r) for r in conn.execute(sql, params).fetchall()]
 
 
+def listar_propiedades_publicadas(limite: int = None) -> list:
+    sql = (
+        "SELECT id, creado_en, tipo_propiedad, operacion, direccion, "
+        "ciudad_estado, precio, nombre_agente, portada FROM propiedades "
+        "WHERE publicado = 1 ORDER BY id DESC"
+    )
+    if limite:
+        sql += f" LIMIT {int(limite)}"
+    with _conn() as conn:
+        return [dict(r) for r in conn.execute(sql).fetchall()]
+
+
 def obtener_propiedad(prop_id: int) -> dict:
     with _conn() as conn:
         row = conn.execute(
@@ -89,3 +119,76 @@ def obtener_propiedad(prop_id: int) -> dict:
         return json.loads(row["payload"])
     except Exception:
         return None
+
+
+def obtener_propiedad_publicada(prop_id: int) -> dict:
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT payload FROM propiedades WHERE id = ? AND publicado = 1", (prop_id,)
+        ).fetchone()
+    if not row:
+        return None
+    try:
+        return json.loads(row["payload"])
+    except Exception:
+        return None
+
+
+def set_publicado(prop_id: int, publicado: bool) -> None:
+    with _conn() as conn:
+        conn.execute(
+            "UPDATE propiedades SET publicado = ? WHERE id = ?",
+            (1 if publicado else 0, prop_id),
+        )
+
+
+def crear_agente(usuario: str, password_hash: str, nombre_completo: str = "", es_admin: bool = False) -> int:
+    with _conn() as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO agentes (usuario, password_hash, nombre_completo, es_admin, activo, creado_en)
+            VALUES (?, ?, ?, ?, 1, ?)
+            """,
+            (usuario, password_hash, nombre_completo, 1 if es_admin else 0,
+             datetime.now().isoformat(timespec="seconds")),
+        )
+        return cur.lastrowid
+
+
+def obtener_agente_por_usuario(usuario: str) -> dict:
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM agentes WHERE usuario = ?", (usuario,)
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def obtener_agente(agente_id: int) -> dict:
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM agentes WHERE id = ?", (agente_id,)
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def listar_agentes() -> list:
+    with _conn() as conn:
+        return [dict(r) for r in conn.execute(
+            "SELECT id, usuario, nombre_completo, es_admin, activo, creado_en FROM agentes ORDER BY id"
+        ).fetchall()]
+
+
+def set_agente_activo(agente_id: int, activo: bool) -> None:
+    with _conn() as conn:
+        conn.execute("UPDATE agentes SET activo = ? WHERE id = ?", (1 if activo else 0, agente_id))
+
+
+def eliminar_agente(agente_id: int) -> None:
+    with _conn() as conn:
+        conn.execute("DELETE FROM agentes WHERE id = ?", (agente_id,))
+
+
+def contar_agentes() -> int:
+    with _conn() as conn:
+        row = conn.execute("SELECT COUNT(*) AS c FROM agentes").fetchone()
+        return row["c"] if row else 0

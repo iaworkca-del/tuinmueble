@@ -17,6 +17,21 @@ DEFAULTS = {
     "email_agente": "",
     "fondo_opacidad": "30",  # visibilidad del fondo 0-100 (0=tenue, 100=muy visible)
     "plantilla": "clasica",  # clasica, elegante, moderna, impacto
+
+    # Contenido del sitio público (editable desde /configuracion)
+    "eslogan": "Encuentra el hogar de tus sueños",
+    "descripcion_agencia": (
+        "Somos una agencia inmobiliaria comprometida con ayudarte a encontrar "
+        "la propiedad ideal. Con años de experiencia en el mercado, ofrecemos "
+        "un servicio personalizado, transparente y cercano en cada paso del "
+        "proceso de compra, venta o alquiler."
+    ),
+    "servicio_1_titulo": "Venta de propiedades",
+    "servicio_1_desc": "Te acompañamos en todo el proceso de venta, desde la valoración hasta el cierre del negocio.",
+    "servicio_2_titulo": "Alquiler de inmuebles",
+    "servicio_2_desc": "Encontramos el inquilino o la propiedad ideal para ti, con contratos claros y seguros.",
+    "servicio_3_titulo": "Asesoría inmobiliaria",
+    "servicio_3_desc": "Te asesoramos con información del mercado para que tomes la mejor decisión de inversión.",
 }
 
 

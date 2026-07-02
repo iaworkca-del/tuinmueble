@@ -17,9 +17,14 @@
     <div class="logo-text">{{ branding.nombre_agencia if branding else "Mi Propiedad" }}</div>
     <p>Generador profesional de publicaciones inmobiliarias</p>
   </div>
-  <div style="display:flex; gap:0.5rem;">
+  <div style="display:flex; gap:0.5rem; align-items:center;">
     <a href="/historial" class="btn-secondary" style="font-size:0.85rem;">🗂 Historial</a>
     <a href="/configuracion" class="btn-secondary" style="font-size:0.85rem;">⚙ Configuración</a>
+    {% if agente and agente.es_admin %}
+    <a href="/panel/agentes" class="btn-secondary" style="font-size:0.85rem;">👤 Agentes</a>
+    {% endif %}
+    <a href="/" class="btn-secondary" style="font-size:0.85rem;">🌐 Sitio público</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
   </div>
 </header>
 

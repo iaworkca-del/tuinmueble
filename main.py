@@ -1,6 +1,7 @@
 import os
 import uuid
 import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
@@ -8,6 +9,7 @@ from fastapi import FastAPI, Request, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
 
 from ai_service import generar_contenido
@@ -20,12 +22,37 @@ from image_composer import (
 from pdf_service import generar_pdf
 from instagram_service import publicar_instagram
 from branding import get_branding, guardar_branding, logo_existe, fondo_existe, LOGO_PATH, FONDO_PATH
-from db import init_db, guardar_propiedad, listar_propiedades, obtener_propiedad
+from db import (
+    init_db,
+    guardar_propiedad,
+    listar_propiedades,
+    listar_propiedades_publicadas,
+    obtener_propiedad,
+    obtener_propiedad_publicada,
+    set_publicado,
+    listar_agentes,
+    crear_agente,
+    obtener_agente_por_usuario,
+    set_agente_activo,
+    eliminar_agente,
+)
+from auth import (
+    seed_admin,
+    hash_password,
+    verificar_password,
+    obtener_usuario_actual,
+    iniciar_sesion,
+    cerrar_sesion,
+)
 
 load_dotenv()
 
 app = FastAPI(title="Mi Propiedad")
 init_db()
+seed_admin()
+
+SESSION_SECRET = os.environ.get("SESSION_SECRET_KEY", "clave-temporal-cambiar")
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET, session_cookie="mp_session")
 
 BASE_DIR = Path(__file__).parent
 UPLOAD_DIR = BASE_DIR / "static" / "uploads"
@@ -40,13 +67,197 @@ def _descarga(static_url: str) -> str:
     return f"/descargar/{static_url.split('/')[-1]}"
 
 
+# ──────────────────────────────────────────────────────────────
+# Sitio público
+# ──────────────────────────────────────────────────────────────
+
+@app.get("/", response_class=HTMLResponse)
+async def inicio_publico(request: Request):
+    propiedades = listar_propiedades_publicadas(limite=6)
+    return templates.TemplateResponse(
+        request=request,
+        name="public/index.html",
+        context={
+            "branding": get_branding(),
+            "propiedades": propiedades,
+            "anio": datetime.now().year,
+        },
+    )
+
+
+@app.get("/servicios", response_class=HTMLResponse)
+async def servicios_publico(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="public/servicios.html",
+        context={"branding": get_branding(), "anio": datetime.now().year},
+    )
+
+
+@app.get("/catalogo", response_class=HTMLResponse)
+async def catalogo_publico(request: Request):
+    propiedades = listar_propiedades_publicadas()
+    return templates.TemplateResponse(
+        request=request,
+        name="public/catalogo.html",
+        context={
+            "branding": get_branding(),
+            "propiedades": propiedades,
+            "anio": datetime.now().year,
+        },
+    )
+
+
+@app.get("/catalogo/{prop_id}", response_class=HTMLResponse)
+async def catalogo_detalle_publico(request: Request, prop_id: int):
+    payload = obtener_propiedad_publicada(prop_id)
+    if not payload:
+        return RedirectResponse(url="/catalogo")
+    return templates.TemplateResponse(
+        request=request,
+        name="public/propiedad_detalle.html",
+        context={"branding": get_branding(), "anio": datetime.now().year, **payload},
+    )
+
+
+# ──────────────────────────────────────────────────────────────
+# Autenticación
+# ──────────────────────────────────────────────────────────────
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_form(request: Request, siguiente: str = "/panel"):
+    if obtener_usuario_actual(request):
+        return RedirectResponse(url=siguiente or "/panel", status_code=303)
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"branding": get_branding(), "error": None, "siguiente": siguiente},
+    )
+
+
+@app.post("/login")
+async def login_submit(
+    request: Request,
+    usuario: str = Form(...),
+    password: str = Form(...),
+    siguiente: str = Form("/panel"),
+):
+    agente = obtener_agente_por_usuario(usuario.strip())
+    if not agente or not agente.get("activo") or not verificar_password(password, agente["password_hash"]):
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={
+                "branding": get_branding(),
+                "error": "Usuario o contraseña incorrectos, o cuenta inactiva.",
+                "siguiente": siguiente,
+            },
+            status_code=401,
+        )
+    iniciar_sesion(request, agente)
+    return RedirectResponse(url=siguiente or "/panel", status_code=303)
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    cerrar_sesion(request)
+    return RedirectResponse(url="/login", status_code=303)
+
+
+# ──────────────────────────────────────────────────────────────
+# Gestión de agentes (solo administradores)
+# ──────────────────────────────────────────────────────────────
+
+@app.get("/panel/agentes", response_class=HTMLResponse)
+async def panel_agentes(request: Request, mensaje: str = "", error: str = ""):
+    agente = obtener_usuario_actual(request)
+    if not agente:
+        return RedirectResponse(url=f"/login?siguiente=/panel/agentes", status_code=303)
+    if not agente.get("es_admin"):
+        return RedirectResponse(url="/panel", status_code=303)
+    return templates.TemplateResponse(
+        request=request,
+        name="panel_agentes.html",
+        context={
+            "branding": get_branding(),
+            "agentes": listar_agentes(),
+            "agente_actual_id": agente["id"],
+            "mensaje": mensaje,
+            "error": error,
+        },
+    )
+
+
+@app.post("/panel/agentes")
+async def crear_agente_endpoint(
+    request: Request,
+    usuario: str = Form(...),
+    nombre_completo: str = Form(""),
+    password: str = Form(...),
+    es_admin: str = Form(None),
+):
+    agente = obtener_usuario_actual(request)
+    if not agente or not agente.get("es_admin"):
+        return RedirectResponse(url="/panel", status_code=303)
+    if obtener_agente_por_usuario(usuario.strip()):
+        return RedirectResponse(url="/panel/agentes?error=Ese usuario ya existe.", status_code=303)
+    crear_agente(
+        usuario=usuario.strip(),
+        password_hash=hash_password(password),
+        nombre_completo=nombre_completo,
+        es_admin=bool(es_admin),
+    )
+    return RedirectResponse(url="/panel/agentes?mensaje=Agente creado correctamente.", status_code=303)
+
+
+@app.post("/panel/agentes/{agente_id}/estado")
+async def cambiar_estado_agente(request: Request, agente_id: int, activo: int = Form(...)):
+    agente = obtener_usuario_actual(request)
+    if not agente or not agente.get("es_admin"):
+        return RedirectResponse(url="/panel", status_code=303)
+    if agente_id == agente["id"]:
+        return RedirectResponse(url="/panel/agentes?error=No puedes desactivar tu propia cuenta.", status_code=303)
+    set_agente_activo(agente_id, bool(activo))
+    return RedirectResponse(url="/panel/agentes?mensaje=Estado actualizado.", status_code=303)
+
+
+@app.post("/panel/agentes/{agente_id}/eliminar")
+async def eliminar_agente_endpoint(request: Request, agente_id: int):
+    agente = obtener_usuario_actual(request)
+    if not agente or not agente.get("es_admin"):
+        return RedirectResponse(url="/panel", status_code=303)
+    if agente_id == agente["id"]:
+        return RedirectResponse(url="/panel/agentes?error=No puedes eliminar tu propia cuenta.", status_code=303)
+    eliminar_agente(agente_id)
+    return RedirectResponse(url="/panel/agentes?mensaje=Agente eliminado.", status_code=303)
+
+
+# ──────────────────────────────────────────────────────────────
+# Panel privado (requiere sesión de agente)
+# ──────────────────────────────────────────────────────────────
+
+@app.get("/panel", response_class=HTMLResponse)
+async def formulario(request: Request):
+    agente = obtener_usuario_actual(request)
+    if not agente:
+        return RedirectResponse(url="/login?siguiente=/panel", status_code=303)
+    branding = get_branding()
+    return templates.TemplateResponse(
+        request=request,
+        name="form.html",
+        context={"branding": branding, "agente": agente},
+    )
+
+
 @app.get("/generar")
 async def generar_redirect():
-    return RedirectResponse(url="/")
+    return RedirectResponse(url="/panel")
 
 
 @app.get("/descargar/{filename}")
-async def descargar(filename: str):
+async def descargar(request: Request, filename: str):
+    if not obtener_usuario_actual(request):
+        return RedirectResponse(url="/login", status_code=303)
     file_path = UPLOAD_DIR / filename
     media = "application/pdf" if filename.lower().endswith(".pdf") else "image/jpeg"
     return FileResponse(
@@ -59,9 +270,12 @@ async def descargar(filename: str):
 
 @app.post("/publicar-instagram")
 async def publicar_instagram_endpoint(
+    request: Request,
     imagenes: List[str] = Form(...),
     titulo: str = Form(""),
 ):
+    if not obtener_usuario_actual(request):
+        return JSONResponse({"success": False, "message": "Sesión requerida."}, status_code=401)
     rutas = []
     for nombre in imagenes:
         fp = UPLOAD_DIR / Path(nombre).name  # evitar path traversal
@@ -79,6 +293,8 @@ async def publicar_instagram_endpoint(
 
 @app.get("/configuracion", response_class=HTMLResponse)
 async def configuracion(request: Request, guardado: int = 0):
+    if not obtener_usuario_actual(request):
+        return RedirectResponse(url="/login?siguiente=/configuracion", status_code=303)
     return templates.TemplateResponse(
         request=request,
         name="configuracion.html",
@@ -93,6 +309,7 @@ async def configuracion(request: Request, guardado: int = 0):
 
 @app.post("/configuracion")
 async def guardar_configuracion(
+    request: Request,
     nombre_agencia: str = Form(...),
     color_primario: str = Form("#1a3a5c"),
     color_secundario: str = Form("#c8a45a"),
@@ -101,9 +318,19 @@ async def guardar_configuracion(
     email_agente: str = Form(""),
     fondo_opacidad: str = Form("30"),
     plantilla: str = Form("clasica"),
+    eslogan: str = Form(""),
+    descripcion_agencia: str = Form(""),
+    servicio_1_titulo: str = Form(""),
+    servicio_1_desc: str = Form(""),
+    servicio_2_titulo: str = Form(""),
+    servicio_2_desc: str = Form(""),
+    servicio_3_titulo: str = Form(""),
+    servicio_3_desc: str = Form(""),
     logo: UploadFile = File(None),
     fondo: UploadFile = File(None),
 ):
+    if not obtener_usuario_actual(request):
+        return RedirectResponse(url="/login?siguiente=/configuracion", status_code=303)
     guardar_branding({
         "nombre_agencia": nombre_agencia,
         "color_primario": color_primario,
@@ -113,6 +340,14 @@ async def guardar_configuracion(
         "email_agente": email_agente,
         "fondo_opacidad": fondo_opacidad,
         "plantilla": plantilla,
+        "eslogan": eslogan,
+        "descripcion_agencia": descripcion_agencia,
+        "servicio_1_titulo": servicio_1_titulo,
+        "servicio_1_desc": servicio_1_desc,
+        "servicio_2_titulo": servicio_2_titulo,
+        "servicio_2_desc": servicio_2_desc,
+        "servicio_3_titulo": servicio_3_titulo,
+        "servicio_3_desc": servicio_3_desc,
     })
     if logo and logo.filename:
         with LOGO_PATH.open("wb") as f:
@@ -132,6 +367,8 @@ async def guardar_configuracion(
 
 @app.get("/historial", response_class=HTMLResponse)
 async def historial(request: Request, busqueda: str = ""):
+    if not obtener_usuario_actual(request):
+        return RedirectResponse(url="/login?siguiente=/historial", status_code=303)
     propiedades = listar_propiedades(busqueda.strip() or None)
     return templates.TemplateResponse(
         request=request,
@@ -144,8 +381,18 @@ async def historial(request: Request, busqueda: str = ""):
     )
 
 
+@app.post("/historial/{prop_id}/publicar")
+async def alternar_publicacion(request: Request, prop_id: int, publicado: int = Form(...)):
+    if not obtener_usuario_actual(request):
+        return RedirectResponse(url="/login?siguiente=/historial", status_code=303)
+    set_publicado(prop_id, bool(publicado))
+    return RedirectResponse(url="/historial", status_code=303)
+
+
 @app.get("/historial/{prop_id}", response_class=HTMLResponse)
 async def historial_detalle(request: Request, prop_id: int):
+    if not obtener_usuario_actual(request):
+        return RedirectResponse(url="/login?siguiente=/historial", status_code=303)
     payload = obtener_propiedad(prop_id)
     if not payload:
         return RedirectResponse(url="/historial")
@@ -153,16 +400,6 @@ async def historial_detalle(request: Request, prop_id: int):
         request=request,
         name="result.html",
         context={"branding": get_branding(), "prop_id": prop_id, **payload},
-    )
-
-
-@app.get("/", response_class=HTMLResponse)
-async def formulario(request: Request):
-    branding = get_branding()
-    return templates.TemplateResponse(
-        request=request,
-        name="form.html",
-        context={"branding": branding},
     )
 
 
@@ -191,6 +428,9 @@ async def generar(
     foto_portada: UploadFile = File(...),
     fotos_extra: List[UploadFile] = File(default=[]),
 ):
+    if not obtener_usuario_actual(request):
+        return RedirectResponse(url="/login?siguiente=/panel", status_code=303)
+
     # Componer "ciudad_estado" desde municipio + estado (lo usan imagen, PDF y prompt de IA)
     ciudad_estado = ", ".join([p for p in [municipio, estado] if p]) or pais
 
