@@ -108,6 +108,29 @@ def listar_propiedades_publicadas(limite: int = None) -> list:
         return [dict(r) for r in conn.execute(sql).fetchall()]
 
 
+def listar_propiedades_top(limite: int = 10) -> list:
+    sql = (
+        "SELECT id, tipo_propiedad, operacion, direccion, ciudad_estado, "
+        "precio, portada, payload FROM propiedades "
+        "WHERE publicado = 1 ORDER BY id DESC LIMIT ?"
+    )
+    with _conn() as conn:
+        rows = conn.execute(sql, (int(limite),)).fetchall()
+    resultado = []
+    for r in rows:
+        d = dict(r)
+        payload_raw = d.pop("payload", None)
+        pdf_url = None
+        if payload_raw:
+            try:
+                pdf_url = json.loads(payload_raw).get("pdf_descarga_url")
+            except Exception:
+                pdf_url = None
+        d["pdf_url"] = pdf_url
+        resultado.append(d)
+    return resultado
+
+
 def obtener_propiedad(prop_id: int) -> dict:
     with _conn() as conn:
         row = conn.execute(

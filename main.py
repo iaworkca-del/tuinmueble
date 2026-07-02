@@ -27,6 +27,7 @@ from db import (
     guardar_propiedad,
     listar_propiedades,
     listar_propiedades_publicadas,
+    listar_propiedades_top,
     obtener_propiedad,
     obtener_propiedad_publicada,
     set_publicado,
@@ -90,7 +91,11 @@ async def servicios_publico(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="public/servicios.html",
-        context={"branding": get_branding(), "anio": datetime.now().year},
+        context={
+            "branding": get_branding(),
+            "anio": datetime.now().year,
+            "propiedades_top": listar_propiedades_top(10),
+        },
     )
 
 
