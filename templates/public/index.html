@@ -119,7 +119,11 @@
   <div class="pub-noticias-grid">
     {% for n in noticias %}
     <article class="pub-noticia-card">
-      {% if n.imagen_url %}
+      {% if n.imagen_url and n.imagen_es_logo %}
+      <div class="pub-noticia-img pub-noticia-img-logo">
+        <img src="{{ n.imagen_url }}" alt="{{ n.titulo }}" loading="lazy" />
+      </div>
+      {% elif n.imagen_url %}
       <img src="{{ n.imagen_url }}" class="pub-noticia-img" alt="{{ n.titulo }}" loading="lazy" />
       {% else %}
       <div class="pub-noticia-img pub-noticia-img-vacio">🏘️</div>

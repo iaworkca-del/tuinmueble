@@ -24,6 +24,8 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
+from branding import logo_url
+
 BASE_DIR = Path(__file__).parent
 NOTICIAS_IMG_DIR = BASE_DIR / "static" / "noticias"
 NOTICIAS_IMG_DIR.mkdir(parents=True, exist_ok=True)
@@ -184,17 +186,23 @@ def generar_noticia_diaria(tema: str = None) -> dict:
     """
     contenido = generar_texto_noticia(tema)
     imagen_url = None
+    imagen_es_logo = False
     try:
         imagen_url = generar_imagen_noticia(contenido["prompt_imagen"])
     except Exception as e:
         print(f"gemini_service: no se pudo generar la imagen de la noticia: {e}")
-        imagen_url = None
+        # Fallback gratuito: si Gemini no puede generar la imagen (por ejemplo,
+        # cuota de imagen agotada/no disponible en el plan gratuito), usamos el
+        # logo de la agencia en vez de dejar la tarjeta sin imagen.
+        imagen_url = logo_url() or None
+        imagen_es_logo = bool(imagen_url)
 
     return {
         "titulo": contenido["titulo"],
         "resumen": contenido["resumen"],
         "contenido": contenido["contenido"],
         "imagen_url": imagen_url,
+        "imagen_es_logo": imagen_es_logo,
         "fecha": datetime.now().strftime("%Y-%m-%d"),
         "creado_en": datetime.now().isoformat(timespec="seconds"),
     }

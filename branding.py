@@ -90,5 +90,15 @@ def logo_existe() -> bool:
     return LOGO_PATH.exists()
 
 
+def logo_url() -> str:
+    """URL pública del logo de la agencia con cache-bust, o '' si no hay logo."""
+    if LOGO_PATH.exists():
+        try:
+            return f"/static/logo.png?v={int(LOGO_PATH.stat().st_mtime)}"
+        except Exception:
+            return "/static/logo.png"
+    return ""
+
+
 def fondo_existe() -> bool:
     return FONDO_PATH.exists()

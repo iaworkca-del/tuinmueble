@@ -65,6 +65,9 @@ def init_db():
             )
             """
         )
+        columnas_noticias = [r["name"] for r in conn.execute("PRAGMA table_info(noticias)").fetchall()]
+        if "imagen_es_logo" not in columnas_noticias:
+            conn.execute("ALTER TABLE noticias ADD COLUMN imagen_es_logo INTEGER DEFAULT 0")
 
 
 def guardar_propiedad(payload: dict) -> int:
@@ -235,8 +238,8 @@ def guardar_noticia(payload: dict) -> int:
     with _conn() as conn:
         cur = conn.execute(
             """
-            INSERT INTO noticias (fecha, titulo, resumen, contenido, imagen_url, creado_en)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO noticias (fecha, titulo, resumen, contenido, imagen_url, imagen_es_logo, creado_en)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 payload.get("fecha", ""),
@@ -244,6 +247,7 @@ def guardar_noticia(payload: dict) -> int:
                 payload.get("resumen", ""),
                 payload.get("contenido", ""),
                 payload.get("imagen_url"),
+                1 if payload.get("imagen_es_logo") else 0,
                 payload.get("creado_en", datetime.now().isoformat(timespec="seconds")),
             ),
         )
