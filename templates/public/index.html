@@ -109,7 +109,7 @@
   {% endif %}
 </section>
 
-<section class="pub-seccion gris pub-reveal">
+<section id="noticias" class="pub-seccion gris pub-reveal">
   <div class="pub-seccion-tit">
     <div class="eyebrow">Blog inmobiliario</div>
     <h2>Tips y Noticias Inmobiliarias</h2>
@@ -118,7 +118,7 @@
   {% if noticias %}
   <div class="pub-noticias-grid">
     {% for n in noticias %}
-    <article class="pub-noticia-card">
+    <a href="/noticias/{{ n.id }}" class="pub-noticia-card">
       {% if n.imagen_url and n.imagen_es_logo %}
       <div class="pub-noticia-img pub-noticia-img-logo">
         <img src="{{ n.imagen_url }}" alt="{{ n.titulo }}" loading="lazy" />
@@ -132,8 +132,9 @@
         <div class="pub-noticia-fecha">{{ n.fecha }}</div>
         <h3 class="pub-noticia-titulo">{{ n.titulo }}</h3>
         <p class="pub-noticia-resumen">{{ n.resumen }}</p>
+        <span class="pub-noticia-cta">Leer más →</span>
       </div>
-    </article>
+    </a>
     {% endfor %}
   </div>
   {% else %}

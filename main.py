@@ -37,6 +37,7 @@ from db import (
     set_agente_activo,
     eliminar_agente,
     listar_noticias,
+    obtener_noticia,
 )
 from noticias_scheduler import iniciar_scheduler_noticias
 from gemini_service import generar_noticia_diaria
@@ -131,6 +132,22 @@ async def catalogo_detalle_publico(request: Request, prop_id: int):
         request=request,
         name="public/propiedad_detalle.html",
         context={"branding": get_branding(), "anio": datetime.now().year, **payload},
+    )
+
+
+@app.get("/noticias/{noticia_id}", response_class=HTMLResponse)
+async def noticia_detalle_publico(request: Request, noticia_id: int):
+    noticia = obtener_noticia(noticia_id)
+    if not noticia:
+        return RedirectResponse(url="/")
+    return templates.TemplateResponse(
+        request=request,
+        name="public/noticia_detalle.html",
+        context={
+            "branding": get_branding(),
+            "anio": datetime.now().year,
+            "noticia": noticia,
+        },
     )
 
 
