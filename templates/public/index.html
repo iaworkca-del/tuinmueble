@@ -24,6 +24,37 @@
   </div>
 </section>
 
+<section class="pub-seccion pub-reveal pub-banner-seccion">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Recién publicadas</div>
+    <h2>Nuestras propiedades</h2>
+    <p>Descubre las últimas propiedades generadas por nuestro equipo, actualizadas automáticamente.</p>
+  </div>
+  {% if propiedades %}
+  <div class="pub-banner-track">
+    {% for p in propiedades %}
+    <a href="/catalogo/{{ p.id }}" class="pub-banner-card">
+      {% if p.portada %}
+      <img src="{{ p.portada }}" class="pub-banner-img" alt="{{ p.tipo_propiedad }}" loading="lazy" />
+      {% else %}
+      <div class="pub-banner-img pub-banner-img-vacio"></div>
+      {% endif %}
+      <div class="pub-banner-overlay"></div>
+      <span class="pub-banner-badge">{{ p.operacion }}</span>
+      <div class="pub-banner-info">
+        <div class="pub-banner-precio">USD ${{ "{:,.0f}".format(p.precio or 0) }}</div>
+        <div class="pub-banner-tipo">{{ p.tipo_propiedad }}</div>
+        <div class="pub-banner-ubic">📍 {{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
+        <span class="pub-banner-cta">Ver más →</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="pub-prop-vacio">Muy pronto publicaremos nuestras propiedades disponibles.</div>
+  {% endif %}
+</section>
+
 <section class="pub-seccion gris pub-reveal">
   <div class="pub-seccion-tit">
     <div class="eyebrow">Lo que hacemos</div>
@@ -75,6 +106,34 @@
   <div style="text-align:center; margin-top:2.5rem;">
     <a href="/catalogo" class="pub-btn pub-btn-dorado" style="color:#1a1a1a;">Ver todo el catálogo</a>
   </div>
+  {% endif %}
+</section>
+
+<section class="pub-seccion gris pub-reveal">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Blog inmobiliario</div>
+    <h2>Tips y Noticias Inmobiliarias</h2>
+    <p>Mercado, precios y tendencias del sector inmobiliario en Venezuela, generado y actualizado automáticamente.</p>
+  </div>
+  {% if noticias %}
+  <div class="pub-noticias-grid">
+    {% for n in noticias %}
+    <article class="pub-noticia-card">
+      {% if n.imagen_url %}
+      <img src="{{ n.imagen_url }}" class="pub-noticia-img" alt="{{ n.titulo }}" loading="lazy" />
+      {% else %}
+      <div class="pub-noticia-img pub-noticia-img-vacio">🏘️</div>
+      {% endif %}
+      <div class="pub-noticia-body">
+        <div class="pub-noticia-fecha">{{ n.fecha }}</div>
+        <h3 class="pub-noticia-titulo">{{ n.titulo }}</h3>
+        <p class="pub-noticia-resumen">{{ n.resumen }}</p>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="pub-prop-vacio">Muy pronto publicaremos tips y noticias del sector inmobiliario venezolano.</div>
   {% endif %}
 </section>
 

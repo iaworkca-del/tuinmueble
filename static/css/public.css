@@ -244,6 +244,126 @@ body.publico {
   text-align: center; color: #999; padding: 3rem 1rem; grid-column: 1 / -1;
 }
 
+/* ── Banner moderno de propiedades ── */
+.pub-banner-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.6rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 0.5rem;
+}
+.pub-banner-card {
+  position: relative;
+  display: block;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #fff;
+  height: 340px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  scroll-snap-align: start;
+}
+.pub-banner-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 20px 46px rgba(0,0,0,0.22);
+}
+.pub-banner-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.pub-banner-card:hover .pub-banner-img { transform: scale(1.08); }
+.pub-banner-img-vacio { background: linear-gradient(135deg, var(--pub-primario), #0e2338); }
+.pub-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10,20,30,0.05) 30%, rgba(10,20,30,0.9) 100%);
+}
+.pub-banner-badge {
+  position: absolute;
+  top: 1rem; left: 1rem;
+  z-index: 2;
+  background: var(--pub-secundario);
+  color: #1a1a1a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+}
+.pub-banner-info {
+  position: absolute;
+  z-index: 2;
+  left: 0; right: 0; bottom: 0;
+  padding: 1.3rem 1.4rem;
+}
+.pub-banner-precio { font-size: 1.35rem; font-weight: 800; }
+.pub-banner-tipo { font-size: 0.9rem; opacity: 0.9; margin-top: 0.15rem; }
+.pub-banner-ubic { font-size: 0.82rem; opacity: 0.85; margin-top: 0.3rem; }
+.pub-banner-cta {
+  display: inline-block;
+  margin-top: 0.8rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--pub-secundario);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.pub-banner-card:hover .pub-banner-cta { opacity: 1; transform: translateX(0); }
+@media (max-width: 640px) {
+  .pub-banner-cta { opacity: 1; transform: none; }
+}
+
+/* ── Tips y Noticias Inmobiliarias ── */
+.pub-noticias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.8rem;
+}
+.pub-noticia-card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.pub-noticia-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.14);
+}
+.pub-noticia-img {
+  width: 100%; height: 190px; object-fit: cover; display: block;
+  background: #ddd;
+}
+.pub-noticia-img-vacio {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.4rem;
+  background: color-mix(in srgb, var(--pub-secundario) 18%, white);
+}
+.pub-noticia-body { padding: 1.2rem 1.3rem 1.4rem; }
+.pub-noticia-fecha {
+  color: var(--pub-secundario);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+.pub-noticia-titulo {
+  color: var(--pub-primario);
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0 0 0.6rem;
+}
+.pub-noticia-resumen { color: #666; font-size: 0.92rem; line-height: 1.55; margin: 0; }
+
 /* ── CTA final ── */
 .pub-cta {
   background: linear-gradient(135deg, var(--pub-primario), #0e2338);

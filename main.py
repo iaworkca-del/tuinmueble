@@ -36,7 +36,11 @@ from db import (
     obtener_agente_por_usuario,
     set_agente_activo,
     eliminar_agente,
+    listar_noticias,
 )
+from noticias_scheduler import iniciar_scheduler_noticias
+from gemini_service import generar_noticia_diaria
+from db import guardar_noticia
 from auth import (
     seed_admin,
     hash_password,
@@ -51,6 +55,9 @@ load_dotenv()
 app = FastAPI(title="Mi Propiedad")
 init_db()
 seed_admin()
+# Job diario: genera texto (Gemini) + imagen (Nano Banana) para la sección
+# "Tips y Noticias Inmobiliarias" y lo guarda en la base de datos (db.noticias).
+iniciar_scheduler_noticias()
 
 SESSION_SECRET = os.environ.get("SESSION_SECRET_KEY", "clave-temporal-cambiar")
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET, session_cookie="mp_session")
@@ -75,12 +82,14 @@ def _descarga(static_url: str) -> str:
 @app.get("/", response_class=HTMLResponse)
 async def inicio_publico(request: Request):
     propiedades = listar_propiedades_publicadas(limite=6)
+    noticias = listar_noticias(limite=6)
     return templates.TemplateResponse(
         request=request,
         name="public/index.html",
         context={
             "branding": get_branding(),
             "propiedades": propiedades,
+            "noticias": noticias,
             "anio": datetime.now().year,
         },
     )
@@ -257,6 +266,24 @@ async def formulario(request: Request):
 @app.get("/generar")
 async def generar_redirect():
     return RedirectResponse(url="/panel")
+
+
+@app.post("/panel/generar-noticia")
+async def generar_noticia_manual(request: Request):
+    """Permite a un administrador disparar manualmente la generación de la
+    noticia/tip del día (texto con Gemini + imagen con Nano Banana), útil para
+    probar la integración sin esperar al job automático de medianoche."""
+    agente = obtener_usuario_actual(request)
+    if not agente or not agente.get("es_admin"):
+        return RedirectResponse(url="/panel", status_code=303)
+    try:
+        payload = generar_noticia_diaria()
+        guardar_noticia(payload)
+        return RedirectResponse(url="/?noticia_generada=1", status_code=303)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return RedirectResponse(url=f"/panel?error_noticia={str(e)[:200]}", status_code=303)
 
 
 @app.get("/descargar/{filename}")

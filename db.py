@@ -52,6 +52,20 @@ def init_db():
             """
         )
 
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS noticias (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fecha TEXT,
+                titulo TEXT,
+                resumen TEXT,
+                contenido TEXT,
+                imagen_url TEXT,
+                creado_en TEXT
+            )
+            """
+        )
+
 
 def guardar_propiedad(payload: dict) -> int:
     datos = payload.get("datos", {})
@@ -215,3 +229,45 @@ def contar_agentes() -> int:
     with _conn() as conn:
         row = conn.execute("SELECT COUNT(*) AS c FROM agentes").fetchone()
         return row["c"] if row else 0
+
+
+def guardar_noticia(payload: dict) -> int:
+    with _conn() as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO noticias (fecha, titulo, resumen, contenido, imagen_url, creado_en)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                payload.get("fecha", ""),
+                payload.get("titulo", ""),
+                payload.get("resumen", ""),
+                payload.get("contenido", ""),
+                payload.get("imagen_url"),
+                payload.get("creado_en", datetime.now().isoformat(timespec="seconds")),
+            ),
+        )
+        return cur.lastrowid
+
+
+def listar_noticias(limite: int = None) -> list:
+    sql = "SELECT * FROM noticias ORDER BY id DESC"
+    if limite:
+        sql += f" LIMIT {int(limite)}"
+    with _conn() as conn:
+        return [dict(r) for r in conn.execute(sql).fetchall()]
+
+
+def obtener_noticia(noticia_id: int) -> dict:
+    with _conn() as conn:
+        row = conn.execute("SELECT * FROM noticias WHERE id = ?", (noticia_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def existe_noticia_hoy() -> bool:
+    hoy = datetime.now().strftime("%Y-%m-%d")
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS c FROM noticias WHERE fecha = ?", (hoy,)
+        ).fetchone()
+        return bool(row and row["c"] > 0)
