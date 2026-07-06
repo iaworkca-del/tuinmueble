@@ -47,10 +47,20 @@ def init_db():
                 nombre_completo TEXT,
                 es_admin INTEGER DEFAULT 0,
                 activo INTEGER DEFAULT 1,
-                creado_en TEXT
+                creado_en TEXT,
+                plan TEXT DEFAULT 'prueba',
+                suscripcion_inicio TEXT,
+                suscripcion_fin TEXT
             )
             """
         )
+        cols_agentes = [r["name"] for r in conn.execute("PRAGMA table_info(agentes)").fetchall()]
+        if "plan" not in cols_agentes:
+            conn.execute("ALTER TABLE agentes ADD COLUMN plan TEXT DEFAULT 'prueba'")
+        if "suscripcion_inicio" not in cols_agentes:
+            conn.execute("ALTER TABLE agentes ADD COLUMN suscripcion_inicio TEXT")
+        if "suscripcion_fin" not in cols_agentes:
+            conn.execute("ALTER TABLE agentes ADD COLUMN suscripcion_fin TEXT")
 
         conn.execute(
             """
@@ -182,15 +192,21 @@ def set_publicado(prop_id: int, publicado: bool) -> None:
         )
 
 
-def crear_agente(usuario: str, password_hash: str, nombre_completo: str = "", es_admin: bool = False) -> int:
+def crear_agente(usuario: str, password_hash: str, nombre_completo: str = "",
+                  es_admin: bool = False, plan: str = "prueba") -> int:
+    ahora = datetime.now().isoformat(timespec="seconds")
     with _conn() as conn:
         cur = conn.execute(
             """
-            INSERT INTO agentes (usuario, password_hash, nombre_completo, es_admin, activo, creado_en)
-            VALUES (?, ?, ?, ?, 1, ?)
+            INSERT INTO agentes (usuario, password_hash, nombre_completo, es_admin, activo,
+                                 creado_en, plan, suscripcion_inicio, suscripcion_fin)
+            VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)
             """,
             (usuario, password_hash, nombre_completo, 1 if es_admin else 0,
-             datetime.now().isoformat(timespec="seconds")),
+             ahora,
+             "vitalicio" if es_admin else plan,
+             ahora,
+             "" if es_admin else ""),
         )
         return cur.lastrowid
 
@@ -214,7 +230,7 @@ def obtener_agente(agente_id: int) -> dict:
 def listar_agentes() -> list:
     with _conn() as conn:
         return [dict(r) for r in conn.execute(
-            "SELECT id, usuario, nombre_completo, es_admin, activo, creado_en FROM agentes ORDER BY id"
+            "SELECT id, usuario, nombre_completo, es_admin, activo, creado_en, plan, suscripcion_inicio, suscripcion_fin FROM agentes ORDER BY id"
         ).fetchall()]
 
 
@@ -226,6 +242,14 @@ def set_agente_activo(agente_id: int, activo: bool) -> None:
 def eliminar_agente(agente_id: int) -> None:
     with _conn() as conn:
         conn.execute("DELETE FROM agentes WHERE id = ?", (agente_id,))
+
+
+def set_suscripcion(agente_id: int, plan: str, inicio: str, fin: str) -> None:
+    with _conn() as conn:
+        conn.execute(
+            "UPDATE agentes SET plan = ?, suscripcion_inicio = ?, suscripcion_fin = ? WHERE id = ?",
+            (plan, inicio, fin, agente_id),
+        )
 
 
 def contar_agentes() -> int:

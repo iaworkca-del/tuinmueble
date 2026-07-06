@@ -1,10 +1,14 @@
 import os
 import bcrypt
+from datetime import datetime, timedelta
 
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 
 from db import obtener_agente_por_usuario, obtener_agente, crear_agente, contar_agentes
+
+DIAS_PRUEBA = 7
+ADMIN_TELEFONO = "+58 0414-8960164"
 
 
 def hash_password(password: str) -> str:
@@ -73,3 +77,93 @@ def requiere_admin(request: Request):
     if not agente or not agente.get("es_admin"):
         return None
     return agente
+
+
+def verificar_suscripcion(agente: dict) -> dict:
+    """Verifica el estado de suscripción de un agente.
+
+    Retorna un dict con:
+      - activa (bool): si puede usar las funciones de IA
+      - plan (str): prueba, mensual, anual, vitalicio
+      - mensaje (str): mensaje para mostrar si está bloqueado
+      - dias_restantes (int|None): días que le quedan
+    """
+    if not agente:
+        return {"activa": False, "plan": "", "mensaje": "Sin sesión.", "dias_restantes": None}
+
+    if agente.get("es_admin"):
+        return {"activa": True, "plan": "vitalicio", "mensaje": "", "dias_restantes": None}
+
+    plan = agente.get("plan") or "prueba"
+    inicio = agente.get("suscripcion_inicio") or agente.get("creado_en") or ""
+    fin = agente.get("suscripcion_fin") or ""
+    ahora = datetime.now()
+
+    if plan == "vitalicio":
+        return {"activa": True, "plan": "vitalicio", "mensaje": "", "dias_restantes": None}
+
+    if plan == "prueba":
+        if fin:
+            try:
+                fecha_fin_prueba = datetime.fromisoformat(fin)
+            except (ValueError, TypeError):
+                fecha_fin_prueba = ahora
+        else:
+            try:
+                fecha_inicio = datetime.fromisoformat(inicio)
+            except (ValueError, TypeError):
+                fecha_inicio = ahora
+            fecha_fin_prueba = fecha_inicio + timedelta(days=DIAS_PRUEBA)
+        dias_restantes = (fecha_fin_prueba - ahora).days
+        if dias_restantes >= 0:
+            return {
+                "activa": True,
+                "plan": "prueba",
+                "mensaje": f"Periodo de prueba: {dias_restantes} día(s) restante(s).",
+                "dias_restantes": dias_restantes,
+            }
+        return {
+            "activa": False,
+            "plan": "prueba",
+            "mensaje": (
+                "Tu periodo de prueba de 7 días ha finalizado. "
+                "Para seguir generando contenido con IA, contacta al administrador "
+                f"al {ADMIN_TELEFONO} para activar tu suscripción."
+            ),
+            "dias_restantes": 0,
+        }
+
+    # Planes pagos: mensual o anual
+    if fin:
+        try:
+            fecha_fin = datetime.fromisoformat(fin)
+        except (ValueError, TypeError):
+            fecha_fin = ahora
+        dias_restantes = (fecha_fin - ahora).days
+        if dias_restantes >= 0:
+            return {
+                "activa": True,
+                "plan": plan,
+                "mensaje": f"Plan {plan}: {dias_restantes} día(s) restante(s).",
+                "dias_restantes": dias_restantes,
+            }
+        return {
+            "activa": False,
+            "plan": plan,
+            "mensaje": (
+                f"Tu suscripción ({plan}) ha vencido. "
+                "Para renovar, contacta al administrador "
+                f"al {ADMIN_TELEFONO}."
+            ),
+            "dias_restantes": 0,
+        }
+
+    return {
+        "activa": False,
+        "plan": plan,
+        "mensaje": (
+            "No tienes una suscripción activa. Contacta al administrador "
+            f"al {ADMIN_TELEFONO} para activar tu plan."
+        ),
+        "dias_restantes": 0,
+    }

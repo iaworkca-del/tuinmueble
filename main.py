@@ -36,6 +36,7 @@ from db import (
     obtener_agente_por_usuario,
     set_agente_activo,
     eliminar_agente,
+    set_suscripcion,
     listar_noticias,
     obtener_noticia,
 )
@@ -49,6 +50,7 @@ from auth import (
     obtener_usuario_actual,
     iniciar_sesion,
     cerrar_sesion,
+    verificar_suscripcion,
 )
 
 load_dotenv()
@@ -56,8 +58,7 @@ load_dotenv()
 app = FastAPI(title="Mi Propiedad")
 init_db()
 seed_admin()
-# Job diario: genera texto (Gemini) + imagen (Nano Banana) para la sección
-# "Tips y Noticias Inmobiliarias" y lo guarda en la base de datos (db.noticias).
+# Job diario: genera texto (Claude) + imagen (Pollinations.ai) para noticias/tips.
 iniciar_scheduler_noticias()
 
 SESSION_SECRET = os.environ.get("SESSION_SECRET_KEY", "clave-temporal-cambiar")
@@ -263,6 +264,23 @@ async def eliminar_agente_endpoint(request: Request, agente_id: int):
     return RedirectResponse(url="/panel/agentes?mensaje=Agente eliminado.", status_code=303)
 
 
+@app.post("/panel/agentes/{agente_id}/suscripcion")
+async def cambiar_suscripcion(
+    request: Request,
+    agente_id: int,
+    plan: str = Form(...),
+    fecha_inicio: str = Form(""),
+    fecha_fin: str = Form(""),
+):
+    agente = obtener_usuario_actual(request)
+    if not agente or not agente.get("es_admin"):
+        return RedirectResponse(url="/panel", status_code=303)
+    inicio = fecha_inicio or datetime.now().strftime("%Y-%m-%d")
+    fin = "" if plan == "vitalicio" else fecha_fin
+    set_suscripcion(agente_id, plan, inicio, fin)
+    return RedirectResponse(url="/panel/agentes?mensaje=Suscripción actualizada.", status_code=303)
+
+
 # ──────────────────────────────────────────────────────────────
 # Panel privado (requiere sesión de agente)
 # ──────────────────────────────────────────────────────────────
@@ -273,10 +291,17 @@ async def formulario(request: Request):
     if not agente:
         return RedirectResponse(url="/login?siguiente=/panel", status_code=303)
     branding = get_branding()
+    suscripcion = verificar_suscripcion(agente)
+    if not suscripcion["activa"]:
+        return templates.TemplateResponse(
+            request=request,
+            name="suscripcion_vencida.html",
+            context={"branding": branding, "agente": agente, "suscripcion": suscripcion},
+        )
     return templates.TemplateResponse(
         request=request,
         name="form.html",
-        context={"branding": branding, "agente": agente},
+        context={"branding": branding, "agente": agente, "suscripcion": suscripcion},
     )
 
 
@@ -287,9 +312,7 @@ async def generar_redirect():
 
 @app.post("/panel/generar-noticia")
 async def generar_noticia_manual(request: Request):
-    """Permite a un administrador disparar manualmente la generación de la
-    noticia/tip del día (texto con Gemini + imagen con Nano Banana), útil para
-    probar la integración sin esperar al job automático de medianoche."""
+    """Genera manualmente la noticia/tip del día (texto con Claude + imagen con Pollinations.ai)."""
     agente = obtener_usuario_actual(request)
     if not agente or not agente.get("es_admin"):
         return RedirectResponse(url="/panel", status_code=303)
@@ -477,8 +500,16 @@ async def generar(
     foto_portada: UploadFile = File(...),
     fotos_extra: List[UploadFile] = File(default=[]),
 ):
-    if not obtener_usuario_actual(request):
+    agente = obtener_usuario_actual(request)
+    if not agente:
         return RedirectResponse(url="/login?siguiente=/panel", status_code=303)
+    suscripcion = verificar_suscripcion(agente)
+    if not suscripcion["activa"]:
+        return templates.TemplateResponse(
+            request=request,
+            name="suscripcion_vencida.html",
+            context={"branding": get_branding(), "agente": agente, "suscripcion": suscripcion},
+        )
 
     # Componer "ciudad_estado" desde municipio + estado (lo usan imagen, PDF y prompt de IA)
     ciudad_estado = ", ".join([p for p in [municipio, estado] if p]) or pais

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suscripción — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .sub-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--azul) 0%, var(--azul-medio) 100%);
+      padding: 1rem;
+    }
+    .sub-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.5rem 2.2rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .sub-icon {
+      font-size: 3.5rem;
+      margin-bottom: 0.8rem;
+    }
+    .sub-card h1 {
+      color: var(--azul);
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .sub-card .sub-mensaje {
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .sub-card .sub-plan-info {
+      background: #f8f4ea;
+      border: 1px solid #e8d9b0;
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: #8a6d3b;
+    }
+    .sub-contacto {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #27ae60;
+      color: #fff;
+      text-decoration: none;
+      padding: 0.8rem 1.6rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .sub-contacto:hover {
+      background: #219a52;
+    }
+    .sub-acciones {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-top: 1.2rem;
+    }
+    .sub-secundario {
+      color: #888;
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .sub-secundario:hover {
+      color: var(--azul);
+    }
+  </style>
+</head>
+<body>
+  <div class="sub-wrap">
+    <div class="sub-card">
+      <div class="sub-icon">🔒</div>
+      <h1>Acceso restringido</h1>
+
+      <p class="sub-mensaje">
+        Hola <strong>{{ agente.nombre_completo or agente.usuario }}</strong>,
+        {{ suscripcion.mensaje }}
+      </p>
+
+      <div class="sub-plan-info">
+        <strong>Tu plan:</strong> {{ suscripcion.plan | capitalize }}<br/>
+        {% if suscripcion.dias_restantes is not none and suscripcion.dias_restantes <= 0 %}
+        <strong>Estado:</strong> Vencido
+        {% endif %}
+      </div>
+
+      <div class="sub-acciones">
+        <a href="https://wa.me/584148960164?text=Hola%2C%20soy%20{{ agente.nombre_completo or agente.usuario }}%20y%20quiero%20renovar%20mi%20suscripci%C3%B3n%20en%20{{ branding.nombre_agencia }}"
+           class="sub-contacto" target="_blank">
+          📱 Contactar al Administrador
+        </a>
+        <span style="font-size:0.85rem; color:#999;">+58 0414-8960164</span>
+        <a href="/logout" class="sub-secundario">← Cerrar sesión</a>
+        <a href="/" class="sub-secundario">← Ir al sitio público</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

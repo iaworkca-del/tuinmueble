@@ -34,6 +34,20 @@
 </div>
 
 <div class="container">
+  {% if suscripcion %}
+  <div style="display:flex; align-items:center; gap:0.6rem; padding:0.5rem 1rem; margin-bottom:0.8rem; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); font-size:0.85rem;">
+    {% if suscripcion.plan == 'vitalicio' %}
+      <span style="background:#27ae60; color:#fff; padding:0.2rem 0.6rem; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">Vitalicio</span>
+    {% elif suscripcion.plan == 'anual' %}
+      <span style="background:#8e44ad; color:#fff; padding:0.2rem 0.6rem; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">Anual</span>
+    {% elif suscripcion.plan == 'mensual' %}
+      <span style="background:#2980b9; color:#fff; padding:0.2rem 0.6rem; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">Mensual</span>
+    {% else %}
+      <span style="background:#f39c12; color:#fff; padding:0.2rem 0.6rem; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">Prueba</span>
+    {% endif %}
+    <span style="color:#666;">{{ suscripcion.mensaje }}</span>
+  </div>
+  {% endif %}
   <form action="/generar" method="post" enctype="multipart/form-data" id="mainForm">
 
     <!-- ── Sección 1: Datos básicos ── -->

@@ -2,15 +2,10 @@
 Job/cron diario para la sección "Tips y Noticias Inmobiliarias".
 
 Cada 24 horas (y una vez al iniciar la app, si hoy no se ha generado nada):
-  (a) llama a Gemini para generar el texto de la noticia/tip,
-  (b) llama a Gemini (Nano Banana) para generar la imagen relacionada,
+  (a) llama a Claude para generar el texto de la noticia/tip,
+  (b) llama a Pollinations.ai para generar la imagen relacionada,
   (c) guarda el resultado en la base de datos (tabla `noticias`, se acumula, no reemplaza),
   (d) el sitio público lee siempre la última noticia disponible en /db.listar_noticias().
-
-Manejo de errores: si un día falla la generación (por ejemplo la API de Gemini no
-responde), el error se registra en consola y el job simplemente lo reintentará al
-día siguiente. La sección pública sigue mostrando la última noticia guardada
-exitosamente, nunca se rompe.
 """
 
 import threading
