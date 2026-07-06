@@ -107,17 +107,26 @@
         <span class="accion-ico">⬇</span> Descargar Imagen
       </a>
       {% endif %}
-      <button class="accion accion-video" disabled title="Próximamente">
-        <span class="accion-ico">🎬</span> Generar Video Reel
-        <span class="accion-badge">Próximamente</span>
-      </button>
       {% if portada_compuesta_url %}
       <button id="btnInstagram" class="accion accion-instagram"
               data-imagen="{{ portada_compuesta_url.split('/')[-1] }}">
         <span class="accion-ico">📸</span> Publicar en Instagram
+        <span class="accion-badge" style="background:#fff; color:#c13584;">Suscripción</span>
       </button>
       {% endif %}
-      <a href="/panel" class="accion accion-outline">
+      <button class="accion accion-tiktok" disabled>
+        <span class="accion-ico">🎵</span> Publicar TikTok
+        <span class="accion-badge" style="background:#fff; color:#010101;">Suscripción</span>
+      </button>
+      <button class="accion accion-facebook" disabled>
+        <span class="accion-ico">📘</span> Publicar Facebook
+        <span class="accion-badge" style="background:#fff; color:#1877F2;">Suscripción</span>
+      </button>
+      <button class="accion accion-video" disabled>
+        <span class="accion-ico">🎬</span> Generar Video Reel
+        <span class="accion-badge" style="background:#fff; color:#6a5acd;">Suscripción</span>
+      </button>
+      <a href="/panel/crear" class="accion accion-outline">
         <span class="accion-ico">＋</span> Nueva propiedad
       </a>
     </div>

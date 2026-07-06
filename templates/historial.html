@@ -18,7 +18,8 @@
     <p>Historial de propiedades</p>
   </div>
   <div style="display:flex; gap:0.5rem;">
-    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">📊 Dashboard</a>
+    <a href="/panel/crear" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
     <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
   </div>
 </header>
@@ -72,7 +73,7 @@
     {% if busqueda %}
     No se encontraron propiedades para "<strong>{{ busqueda }}</strong>".
     {% else %}
-    Aún no has generado propiedades. <a href="/panel">Crea la primera</a>.
+    Aún no has generado propiedades. <a href="/panel/crear">Crea la primera</a>.
     {% endif %}
   </div>
   {% endif %}

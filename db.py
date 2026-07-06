@@ -292,6 +292,27 @@ def obtener_noticia(noticia_id: int) -> dict:
     return dict(row) if row else None
 
 
+def obtener_metricas() -> dict:
+    with _conn() as conn:
+        total_props = conn.execute("SELECT COUNT(*) AS c FROM propiedades").fetchone()["c"]
+        publicadas = conn.execute("SELECT COUNT(*) AS c FROM propiedades WHERE publicado = 1").fetchone()["c"]
+        total_agentes = conn.execute("SELECT COUNT(*) AS c FROM agentes").fetchone()["c"]
+        agentes_activos = conn.execute("SELECT COUNT(*) AS c FROM agentes WHERE activo = 1").fetchone()["c"]
+        total_noticias = conn.execute("SELECT COUNT(*) AS c FROM noticias").fetchone()["c"]
+        recientes = [dict(r) for r in conn.execute(
+            "SELECT id, creado_en, tipo_propiedad, operacion, direccion, precio, portada "
+            "FROM propiedades ORDER BY id DESC LIMIT 5"
+        ).fetchall()]
+    return {
+        "total_propiedades": total_props,
+        "propiedades_publicadas": publicadas,
+        "total_agentes": total_agentes,
+        "agentes_activos": agentes_activos,
+        "total_noticias": total_noticias,
+        "recientes": recientes,
+    }
+
+
 def existe_noticia_hoy() -> bool:
     hoy = datetime.now().strftime("%Y-%m-%d")
     with _conn() as conn:

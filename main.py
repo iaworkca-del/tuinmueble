@@ -39,6 +39,7 @@ from db import (
     set_suscripcion,
     listar_noticias,
     obtener_noticia,
+    obtener_metricas,
 )
 from noticias_scheduler import iniciar_scheduler_noticias
 from gemini_service import generar_noticia_diaria
@@ -286,10 +287,35 @@ async def cambiar_suscripcion(
 # ──────────────────────────────────────────────────────────────
 
 @app.get("/panel", response_class=HTMLResponse)
-async def formulario(request: Request):
+async def dashboard(request: Request):
     agente = obtener_usuario_actual(request)
     if not agente:
         return RedirectResponse(url="/login?siguiente=/panel", status_code=303)
+    branding = get_branding()
+    suscripcion = verificar_suscripcion(agente)
+    if not suscripcion["activa"]:
+        return templates.TemplateResponse(
+            request=request,
+            name="suscripcion_vencida.html",
+            context={"branding": branding, "agente": agente, "suscripcion": suscripcion},
+        )
+    return templates.TemplateResponse(
+        request=request,
+        name="dashboard.html",
+        context={
+            "branding": branding,
+            "agente": agente,
+            "suscripcion": suscripcion,
+            "metricas": obtener_metricas(),
+        },
+    )
+
+
+@app.get("/panel/crear", response_class=HTMLResponse)
+async def formulario(request: Request):
+    agente = obtener_usuario_actual(request)
+    if not agente:
+        return RedirectResponse(url="/login?siguiente=/panel/crear", status_code=303)
     branding = get_branding()
     suscripcion = verificar_suscripcion(agente)
     if not suscripcion["activa"]:
@@ -307,14 +333,17 @@ async def formulario(request: Request):
 
 @app.get("/generar")
 async def generar_redirect():
-    return RedirectResponse(url="/panel")
+    return RedirectResponse(url="/panel/crear")
 
 
 @app.post("/panel/generar-noticia")
 async def generar_noticia_manual(request: Request):
     """Genera manualmente la noticia/tip del día (texto con Claude + imagen con Pollinations.ai)."""
     agente = obtener_usuario_actual(request)
-    if not agente or not agente.get("es_admin"):
+    if not agente:
+        return RedirectResponse(url="/login?siguiente=/panel", status_code=303)
+    suscripcion = verificar_suscripcion(agente)
+    if not suscripcion["activa"]:
         return RedirectResponse(url="/panel", status_code=303)
     try:
         payload = generar_noticia_diaria()
