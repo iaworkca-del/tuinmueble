@@ -322,32 +322,28 @@
       const texto = txt.innerText;
       const nombres = imagenesSeleccionadas();
       const original = wa.innerHTML;
-      wa.innerHTML = '⏳ Enviando imágenes...';
+      wa.innerHTML = '⏳ Preparando...';
       wa.disabled = true;
 
       try {
-        // Paso 1: compartir imágenes primero
         const archivos = [];
         for (const n of nombres) {
           const resp = await fetch('/static/uploads/' + n);
           const blob = await resp.blob();
           archivos.push(new File([blob], n, { type: blob.type || 'image/jpeg' }));
         }
+        const shareData = { text: texto };
         if (archivos.length && navigator.canShare && navigator.canShare({ files: archivos })) {
-          await navigator.share({ files: archivos });
-          // Paso 2: después de las imágenes, compartir el texto
-          wa.innerHTML = '⏳ Abriendo texto...';
-          await new Promise(function(r) { setTimeout(r, 800); });
-          window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
-          wa.innerHTML = original;
-          wa.disabled = false;
-          return;
+          shareData.files = archivos;
         }
+        await navigator.share(shareData);
+        wa.innerHTML = original;
+        wa.disabled = false;
+        return;
       } catch (e) {
-        // si el usuario cancela o falla, caemos al modo texto
+        // si el usuario cancela o no soporta Web Share
       }
 
-      // Fallback: WhatsApp con solo texto
       window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
       wa.innerHTML = original;
       wa.disabled = false;
