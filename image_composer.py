@@ -220,47 +220,34 @@ def componer_overlay_extras(extras_paths: list, datos: dict) -> list:
     return urls
 
 def componer_collage(portada_path: str, extras_paths: list, datos: dict) -> str:
-    branding = get_branding()
-    dorado = hex_to_rgb(branding["color_secundario"])
+    branding_data = get_branding()
+    dorado = hex_to_rgb(branding_data["color_secundario"])
     rutas = [r for r in ([portada_path] + list(extras_paths or [])) if r and Path(r).exists()][:4]
     if not rutas:
         return ""
-    COL_H = SIZE
-    canvas = Image.new("RGBA", (SIZE, COL_H), (255, 255, 255, 255))
+    canvas = Image.new("RGBA", (SIZE, SIZE), (255, 255, 255, 255))
     g = 6
     def pega(ruta, x, y, bw, bh):
         canvas.paste(_cargar_cover(ruta, bw, bh), (x, y))
     n = len(rutas)
     if n == 1:
-        pega(rutas[0], 0, 0, SIZE, COL_H)
+        pega(rutas[0], 0, 0, SIZE, SIZE)
     elif n == 2:
         cw = (SIZE - g) // 2
-        pega(rutas[0], 0, 0, cw, COL_H)
-        pega(rutas[1], cw + g, 0, SIZE - cw - g, COL_H)
+        pega(rutas[0], 0, 0, cw, SIZE)
+        pega(rutas[1], cw + g, 0, SIZE - cw - g, SIZE)
     elif n == 3:
         cw = (SIZE - g) // 2
-        ch = (COL_H - g) // 2
-        pega(rutas[0], 0, 0, cw, COL_H)
+        ch = (SIZE - g) // 2
+        pega(rutas[0], 0, 0, cw, SIZE)
         pega(rutas[1], cw + g, 0, SIZE - cw - g, ch)
-        pega(rutas[2], cw + g, ch + g, SIZE - cw - g, COL_H - ch - g)
+        pega(rutas[2], cw + g, ch + g, SIZE - cw - g, SIZE - ch - g)
     else:
         cw = (SIZE - g) // 2
-        ch = (COL_H - g) // 2
+        ch = (SIZE - g) // 2
         pega(rutas[0], 0, 0, cw, ch)
         pega(rutas[1], cw + g, 0, SIZE - cw - g, ch)
-        pega(rutas[2], 0, ch + g, cw, COL_H - ch - g)
-        pega(rutas[3], cw + g, ch + g, SIZE - cw - g, COL_H - ch - g)
-    franja_h = 150
-    overlay = Image.new("RGBA", (SIZE, COL_H), (0, 0, 0, 0))
-    franja = Image.new("RGBA", (SIZE, franja_h), (0, 0, 0, 0))
-    df = ImageDraw.Draw(franja)
-    for y in range(franja_h):
-        alpha = int(200 * ((franja_h - y) / franja_h))
-        df.rectangle([(0, y), (SIZE, y + 1)], fill=(0, 0, 0, alpha))
-    overlay.paste(franja, (0, COL_H - franja_h))
-    canvas = Image.alpha_composite(canvas, overlay)
-    draw = ImageDraw.Draw(canvas)
-    PAD = 40
-    draw.text((PAD, COL_H - 100), _precio_fmt(datos), font=_obtener_fuente(62, bold=True), fill=(255, 255, 255))
-    draw.text((PAD, COL_H - 45), datos.get("nombre_agente", ""), font=_obtener_fuente(32, bold=True), fill=dorado)
+        pega(rutas[2], 0, ch + g, cw, SIZE - ch - g)
+        pega(rutas[3], cw + g, ch + g, SIZE - cw - g, SIZE - ch - g)
+    canvas = _componer_clasica(canvas, datos, branding_data, dorado)
     return _guardar(canvas, "collage")

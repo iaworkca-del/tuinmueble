@@ -17,8 +17,8 @@ DEFAULTS = {
     "email_agente": "",
     "fondo_opacidad": "30",  # visibilidad del fondo 0-100 (0=tenue, 100=muy visible)
     "plantilla": "clasica",  # clasica, elegante, moderna, impacto
-    "franja_opacidad": "75",   # 0-100 (0=transparente, 100=oscuro)
-    "franja_tamano": "25",     # 15-40 (% de la imagen)
+    "franja_opacidad": "50",   # 0-100 (0=transparente, 100=oscuro)
+    "franja_tamano": "20",     # 15-40 (% de la imagen)
 
     # Contenido del sitio público (editable desde /configuracion)
     "eslogan": "Encuentra el hogar de tus sueños",
