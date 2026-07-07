@@ -11,32 +11,28 @@ LOGO_PATH = BASE_DIR / "static" / "logo.png"
 
 SIZE = 1080
 
+FONTS_DIR = BASE_DIR / "static" / "fonts"
+
 def _obtener_fuente(size: int, bold: bool = False):
-    """Obtiene fuente ESCALADA para Windows + Linux + Railway."""
-    windows_fonts = [
+    """Obtiene fuente con las Poppins del proyecto como prioridad."""
+    project_fonts = [
+        str(FONTS_DIR / ("Poppins-Bold.ttf" if bold else "Poppins-SemiBold.ttf")),
+        str(FONTS_DIR / "Poppins-Regular.ttf"),
+    ]
+
+    system_fonts = [
         "C:/Windows/Fonts/arialbd.ttf" if bold else "C:/Windows/Fonts/arial.ttf",
-        "C:/Windows/Fonts/Arial Bold.ttf" if bold else "C:/Windows/Fonts/Arial.ttf",
-    ]
-    
-    linux_fonts = [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-        "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
     ]
-    
-    todas_las_fuentes = windows_fonts + linux_fonts
-    
-    for ruta in todas_las_fuentes:
+
+    for ruta in project_fonts + system_fonts:
         try:
             if os.path.exists(ruta):
                 return ImageFont.truetype(ruta, size)
         except:
             continue
-    
-    try:
-        return ImageFont.load_default()
-    except:
-        return ImageFont.load_default()
+
+    return ImageFont.load_default(size=size)
 
 def _num(valor):
     try:
