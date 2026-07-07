@@ -100,11 +100,11 @@ def _componer_clasica(img, datos, branding, dorado):
         alpha = int(140 * (1 - y / 120))
         dt.rectangle([(0, y), (W, y + 1)], fill=(0, 0, 0, alpha))
     overlay.paste(franja_top, (0, 0))
-    FRANJA_H = int(H * 0.32)
+    FRANJA_H = int(H * 0.25)
     franja_bot = Image.new("RGBA", (W, FRANJA_H), (0, 0, 0, 0))
     db = ImageDraw.Draw(franja_bot)
     for y in range(FRANJA_H):
-        alpha = int(180 * (1 - y / FRANJA_H))
+        alpha = int(190 * (1 - y / FRANJA_H))
         db.rectangle([(0, y), (W, y + 1)], fill=(0, 0, 0, alpha))
     overlay.paste(franja_bot, (0, H - FRANJA_H))
     img = Image.alpha_composite(img, overlay)
@@ -122,17 +122,17 @@ def _componer_clasica(img, datos, branding, dorado):
     f_et = _obtener_fuente(32, bold=True)
     et_w = draw.textlength(etiqueta, font=f_et)
     draw.text((W - PAD - et_w, 38), etiqueta, font=f_et, fill=dorado)
-    y_base = H - FRANJA_H + 30
-    draw.text((PAD, y_base), _precio_fmt(datos), font=_obtener_fuente(52, bold=True), fill=(255, 255, 255))
+    y_base = H - FRANJA_H + 15
+    draw.text((PAD, y_base), _precio_fmt(datos), font=_obtener_fuente(48, bold=True), fill=(255, 255, 255))
     ubicacion = f"{datos.get('direccion', '')}, {datos.get('ciudad_estado', '')}"
     if len(ubicacion) > 50:
         ubicacion = ubicacion[:47] + " ..."
-    y_ubic = y_base + 60
-    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(24), fill=(200, 200, 200))
-    y_linea = y_ubic + 32
+    y_ubic = y_base + 52
+    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(22), fill=(200, 200, 200))
+    y_linea = y_ubic + 28
     draw.rectangle([(PAD, y_linea), (W - PAD, y_linea + 3)], fill=dorado)
-    y_metricas = y_linea + 12
-    icon_size = 32
+    y_metricas = y_linea + 10
+    icon_size = 36
     metricas = []
     if datos.get("habitaciones"):
         metricas.append(("cama", f"{datos['habitaciones']} Hab"))
@@ -152,12 +152,23 @@ def _componer_clasica(img, datos, branding, dorado):
     if total_w > W - 2 * PAD:
         f_met = _obtener_fuente(22, bold=True)
     for icon_type, text in metricas:
-        icon_map[icon_type](draw, x_m, y_metricas, icon_size, dorado, width=3)
+        icon_map[icon_type](draw, x_m, y_metricas, icon_size, dorado, width=4)
         draw.text((x_m + icon_size + 8, y_metricas + 3), text, font=f_met, fill=(255, 255, 255))
         x_m += icon_size + 8 + int(draw.textlength(text, font=f_met)) + 25
-    y_agente = H - 75
-    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(28, bold=True), fill=dorado)
-    draw.text((PAD, y_agente + 32), datos.get("telefono_agente", ""), font=_obtener_fuente(24), fill=(255, 255, 255))
+    y_agente = y_metricas + icon_size + 8
+    f_nombre = _obtener_fuente(26, bold=True)
+    f_tel = _obtener_fuente(22)
+    nombre = datos.get("nombre_agente", "")
+    telefono = datos.get("telefono_agente", "")
+    nombre_w = draw.textlength(nombre, font=f_nombre)
+    tel_w = draw.textlength(telefono, font=f_tel)
+    bg_w = int(max(nombre_w, tel_w)) + 24
+    bg_h = 58
+    bg = Image.new("RGBA", (bg_w, bg_h), (0, 0, 0, 120))
+    img.paste(Image.alpha_composite(Image.new("RGBA", (bg_w, bg_h), (0, 0, 0, 0)), bg), (PAD - 12, y_agente - 6), bg)
+    draw = ImageDraw.Draw(img)
+    draw.text((PAD, y_agente), nombre, font=f_nombre, fill=dorado)
+    draw.text((PAD, y_agente + 28), telefono, font=f_tel, fill=(255, 255, 255))
     return img
 
 def _componer_moderna(img, datos, branding, dorado):
