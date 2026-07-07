@@ -92,19 +92,19 @@ def _icono_auto(draw, x, y, size, color, width=3):
 
 def _componer_clasica(img, datos, branding, dorado):
     W, H = img.size
-    PAD = 50
+    PAD = 45
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    franja_top = Image.new("RGBA", (W, 160), (0, 0, 0, 0))
+    franja_top = Image.new("RGBA", (W, 120), (0, 0, 0, 0))
     dt = ImageDraw.Draw(franja_top)
-    for y in range(160):
-        alpha = int(160 * (1 - y / 160))
+    for y in range(120):
+        alpha = int(140 * (1 - y / 120))
         dt.rectangle([(0, y), (W, y + 1)], fill=(0, 0, 0, alpha))
     overlay.paste(franja_top, (0, 0))
-    FRANJA_H = 420
+    FRANJA_H = int(H * 0.32)
     franja_bot = Image.new("RGBA", (W, FRANJA_H), (0, 0, 0, 0))
     db = ImageDraw.Draw(franja_bot)
     for y in range(FRANJA_H):
-        alpha = int(140 * (1 - y / FRANJA_H))
+        alpha = int(180 * (1 - y / FRANJA_H))
         db.rectangle([(0, y), (W, y + 1)], fill=(0, 0, 0, alpha))
     overlay.paste(franja_bot, (0, H - FRANJA_H))
     img = Image.alpha_composite(img, overlay)
@@ -112,27 +112,27 @@ def _componer_clasica(img, datos, branding, dorado):
     if LOGO_PATH.exists():
         try:
             logo = Image.open(LOGO_PATH).convert("RGBA")
-            logo.thumbnail((120, 80), Image.LANCZOS)
-            img.paste(logo, (PAD, 30), logo)
+            logo.thumbnail((100, 65), Image.LANCZOS)
+            img.paste(logo, (PAD, 25), logo)
         except:
-            draw.text((PAD, 30), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=(255, 255, 255))
+            draw.text((PAD, 25), branding["nombre_agencia"], font=_obtener_fuente(36, bold=True), fill=(255, 255, 255))
     else:
-        draw.text((PAD, 30), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=(255, 255, 255))
+        draw.text((PAD, 25), branding["nombre_agencia"], font=_obtener_fuente(36, bold=True), fill=(255, 255, 255))
     etiqueta = f"{datos.get('tipo_propiedad', '')} en {datos.get('operacion', '')}"
-    f_et = _obtener_fuente(38, bold=True)
+    f_et = _obtener_fuente(32, bold=True)
     et_w = draw.textlength(etiqueta, font=f_et)
-    draw.text((W - PAD - et_w, 45), etiqueta, font=f_et, fill=dorado)
-    y_precio = H - FRANJA_H + 60
-    draw.text((PAD, y_precio), _precio_fmt(datos), font=_obtener_fuente(62, bold=True), fill=(255, 255, 255))
+    draw.text((W - PAD - et_w, 38), etiqueta, font=f_et, fill=dorado)
+    y_base = H - FRANJA_H + 30
+    draw.text((PAD, y_base), _precio_fmt(datos), font=_obtener_fuente(52, bold=True), fill=(255, 255, 255))
     ubicacion = f"{datos.get('direccion', '')}, {datos.get('ciudad_estado', '')}"
-    if len(ubicacion) > 55:
-        ubicacion = ubicacion[:52] + " ..."
-    y_ubic = y_precio + 80
-    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(28), fill=(200, 200, 200))
-    y_linea = y_ubic + 42
-    draw.rectangle([(PAD, y_linea), (W - PAD, y_linea + 4)], fill=dorado)
-    y_metricas = y_linea + 18
-    icon_size = 36
+    if len(ubicacion) > 50:
+        ubicacion = ubicacion[:47] + " ..."
+    y_ubic = y_base + 60
+    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(24), fill=(200, 200, 200))
+    y_linea = y_ubic + 32
+    draw.rectangle([(PAD, y_linea), (W - PAD, y_linea + 3)], fill=dorado)
+    y_metricas = y_linea + 12
+    icon_size = 32
     metricas = []
     if datos.get("habitaciones"):
         metricas.append(("cama", f"{datos['habitaciones']} Hab"))
@@ -143,21 +143,21 @@ def _componer_clasica(img, datos, branding, dorado):
     if datos.get("estacionamientos"):
         metricas.append(("auto", f"{datos['estacionamientos']} Estacionamiento"))
     icon_map = {"cama": _icono_cama, "bano": _icono_bano, "area": _icono_area, "auto": _icono_auto}
-    f_met = _obtener_fuente(28, bold=True)
+    f_met = _obtener_fuente(26, bold=True)
     total_w = 0
     for icon_type, text in metricas:
-        total_w += icon_size + 10 + draw.textlength(text, font=f_met) + 30
-    total_w -= 30
+        total_w += icon_size + 8 + draw.textlength(text, font=f_met) + 25
+    total_w -= 25
     x_m = PAD
     if total_w > W - 2 * PAD:
-        f_met = _obtener_fuente(24, bold=True)
+        f_met = _obtener_fuente(22, bold=True)
     for icon_type, text in metricas:
         icon_map[icon_type](draw, x_m, y_metricas, icon_size, dorado, width=3)
-        draw.text((x_m + icon_size + 10, y_metricas + 4), text, font=f_met, fill=(255, 255, 255))
-        x_m += icon_size + 10 + int(draw.textlength(text, font=f_met)) + 30
-    y_agente = H - 100
-    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(32, bold=True), fill=dorado)
-    draw.text((PAD, y_agente + 38), datos.get("telefono_agente", ""), font=_obtener_fuente(28), fill=(255, 255, 255))
+        draw.text((x_m + icon_size + 8, y_metricas + 3), text, font=f_met, fill=(255, 255, 255))
+        x_m += icon_size + 8 + int(draw.textlength(text, font=f_met)) + 25
+    y_agente = H - 75
+    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(28, bold=True), fill=dorado)
+    draw.text((PAD, y_agente + 32), datos.get("telefono_agente", ""), font=_obtener_fuente(24), fill=(255, 255, 255))
     return img
 
 def _componer_moderna(img, datos, branding, dorado):
@@ -188,7 +188,7 @@ def _componer(img: Image.Image, datos: dict, bottom_safe: int = 0) -> Image.Imag
     return fn(img, datos, branding, dorado)
 
 def componer_portada(foto_path: str, datos: dict) -> str:
-    img = _cargar_cover(foto_path, SIZE, int(SIZE * 3 / 4))
+    img = _cargar_cover(foto_path, SIZE, SIZE)
     img = _componer(img, datos, bottom_safe=0)
     return _guardar(img, "compuesta")
 
@@ -201,7 +201,7 @@ def componer_overlay_extras(extras_paths: list, datos: dict) -> list:
     urls = []
     for ruta in (extras_paths or []):
         if ruta and Path(ruta).exists():
-            img = _cargar_cover(ruta, SIZE, int(SIZE * 3 / 4))
+            img = _cargar_cover(ruta, SIZE, SIZE)
             img = _componer(img, datos, bottom_safe=0)
             urls.append(_guardar(img, "extra"))
     return urls
@@ -212,7 +212,7 @@ def componer_collage(portada_path: str, extras_paths: list, datos: dict) -> str:
     rutas = [r for r in ([portada_path] + list(extras_paths or [])) if r and Path(r).exists()][:4]
     if not rutas:
         return ""
-    COL_H = int(SIZE * 3 / 4)
+    COL_H = SIZE
     canvas = Image.new("RGBA", (SIZE, COL_H), (255, 255, 255, 255))
     g = 6
     def pega(ruta, x, y, bw, bh):
