@@ -12,7 +12,7 @@ LOGO_PATH = BASE_DIR / "static" / "logo.png"
 SIZE = 1080
 
 def _obtener_fuente(size: int, bold: bool = False):
-    """Obtiene fuente compatible Windows + Linux + Railway."""
+    """Obtiene fuente ESCALADA para Windows + Linux + Railway."""
     windows_fonts = [
         "C:/Windows/Fonts/arialbd.ttf" if bold else "C:/Windows/Fonts/arial.ttf",
         "C:/Windows/Fonts/Arial Bold.ttf" if bold else "C:/Windows/Fonts/Arial.ttf",
@@ -22,7 +22,6 @@ def _obtener_fuente(size: int, bold: bool = False):
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
         "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
-        "/usr/share/fonts/truetype/ubuntu/Ubuntu-Bold.ttf" if bold else "/usr/share/fonts/truetype/ubuntu/Ubuntu-Regular.ttf",
     ]
     
     todas_las_fuentes = windows_fonts + linux_fonts
@@ -119,44 +118,44 @@ def _componer_clasica(img, datos, branding, dorado):
             logo.thumbnail((120, 80), Image.LANCZOS)
             img.paste(logo, (PAD, PAD), logo)
         except:
-            draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=(255, 255, 255))
+            draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(48, bold=True), fill=(255, 255, 255))
     else:
-        draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=(255, 255, 255))
+        draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(48, bold=True), fill=(255, 255, 255))
     draw.rectangle([(PAD, 100), (PAD + 200, 105)], fill=dorado)
     etiqueta = f"{datos.get('tipo_propiedad', '')} / {datos.get('operacion', '')}"
-    f_et = _obtener_fuente(36, bold=True)
+    f_et = _obtener_fuente(40, bold=True)
     et_w = draw.textlength(etiqueta, font=f_et)
     draw.text((W - PAD - et_w, PAD + 10), etiqueta, font=f_et, fill=dorado)
     y_precio = H - 320
-    draw.text((PAD, y_precio), _precio_fmt(datos), font=_obtener_fuente(80, bold=True), fill=(255, 255, 255))
+    draw.text((PAD, y_precio), _precio_fmt(datos), font=_obtener_fuente(90, bold=True), fill=(255, 255, 255))
     ubicacion = f"{datos.get('direccion', '')}, {datos.get('ciudad_estado', '')}"
     if len(ubicacion) > 60:
         ubicacion = ubicacion[:57] + "..."
     y_ubic = y_precio + 85
-    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(28), fill=(200, 200, 200))
+    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(32), fill=(200, 200, 200))
     draw.rectangle([(PAD, y_ubic + 40), (PAD + 200, y_ubic + 45)], fill=dorado)
     y_metricas = y_ubic + 60
     x_m = PAD
-    icon_size = 32
+    icon_size = 40
     if datos.get("habitaciones"):
-        _icono_cama(draw, x_m, y_metricas, icon_size, dorado)
-        draw.text((x_m + 45, y_metricas + 3), f"{datos['habitaciones']} Hab", font=_obtener_fuente(26, bold=True), fill=(255, 255, 255))
-        x_m += 180
+        _icono_cama(draw, x_m, y_metricas, icon_size, dorado, width=4)
+        draw.text((x_m + 55, y_metricas + 5), f"{datos['habitaciones']} Hab", font=_obtener_fuente(30, bold=True), fill=(255, 255, 255))
+        x_m += 200
     if datos.get("banos"):
-        _icono_bano(draw, x_m, y_metricas, icon_size, dorado)
-        draw.text((x_m + 45, y_metricas + 3), f"{datos['banos']} Baños", font=_obtener_fuente(26, bold=True), fill=(255, 255, 255))
-        x_m += 200
+        _icono_bano(draw, x_m, y_metricas, icon_size, dorado, width=4)
+        draw.text((x_m + 55, y_metricas + 5), f"{datos['banos']} Baños", font=_obtener_fuente(30, bold=True), fill=(255, 255, 255))
+        x_m += 220
     if datos.get("metros_construidos"):
-        _icono_area(draw, x_m, y_metricas, icon_size, dorado)
-        draw.text((x_m + 45, y_metricas + 3), f"{_num(datos['metros_construidos'])} m²", font=_obtener_fuente(26, bold=True), fill=(255, 255, 255))
-        x_m += 200
+        _icono_area(draw, x_m, y_metricas, icon_size, dorado, width=4)
+        draw.text((x_m + 55, y_metricas + 5), f"{_num(datos['metros_construidos'])} m²", font=_obtener_fuente(30, bold=True), fill=(255, 255, 255))
+        x_m += 220
     if datos.get("estacionamientos"):
-        _icono_auto(draw, x_m, y_metricas, icon_size, dorado)
-        draw.text((x_m + 45, y_metricas + 3), f"{datos['estacionamientos']} Est.", font=_obtener_fuente(26, bold=True), fill=(255, 255, 255))
+        _icono_auto(draw, x_m, y_metricas, icon_size, dorado, width=4)
+        draw.text((x_m + 55, y_metricas + 5), f"{datos['estacionamientos']} Est.", font=_obtener_fuente(30, bold=True), fill=(255, 255, 255))
     y_agente = H - 95
     draw.rectangle([(PAD, y_agente - 10), (PAD + 250, y_agente - 5)], fill=dorado)
-    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(30, bold=True), fill=dorado)
-    draw.text((PAD, y_agente + 35), datos.get("telefono_agente", ""), font=_obtener_fuente(26), fill=(255, 255, 255))
+    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(34, bold=True), fill=dorado)
+    draw.text((PAD, y_agente + 35), datos.get("telefono_agente", ""), font=_obtener_fuente(30), fill=(255, 255, 255))
     return img
 
 def _componer_moderna(img, datos, branding, dorado):
@@ -178,30 +177,30 @@ def _componer_moderna(img, datos, branding, dorado):
             img.paste(logo, (PAD, y), logo)
             y += 80
         except:
-            draw.text((PAD, y), branding["nombre_agencia"], font=_obtener_fuente(32, bold=True), fill=dorado)
+            draw.text((PAD, y), branding["nombre_agencia"], font=_obtener_fuente(36, bold=True), fill=dorado)
             y += 50
     else:
-        draw.text((PAD, y), branding["nombre_agencia"], font=_obtener_fuente(32, bold=True), fill=dorado)
+        draw.text((PAD, y), branding["nombre_agencia"], font=_obtener_fuente(36, bold=True), fill=dorado)
         y += 50
-    draw.text((PAD, y), f"{datos.get('tipo_propiedad', '')}".upper(), font=_obtener_fuente(24, bold=True), fill=dorado)
+    draw.text((PAD, y), f"{datos.get('tipo_propiedad', '')}".upper(), font=_obtener_fuente(28, bold=True), fill=dorado)
     y += 28
-    draw.text((PAD, y), f"EN {datos.get('operacion', '')}".upper(), font=_obtener_fuente(22), fill=(180, 180, 180))
+    draw.text((PAD, y), f"EN {datos.get('operacion', '')}".upper(), font=_obtener_fuente(26), fill=(180, 180, 180))
     y += 45
     draw.rectangle([(PAD, y), (BARRA_W - PAD, y + 2)], fill=dorado)
     y += 20
-    draw.text((PAD, y), _precio_fmt(datos), font=_obtener_fuente(48, bold=True), fill=(255, 255, 255))
+    draw.text((PAD, y), _precio_fmt(datos), font=_obtener_fuente(54, bold=True), fill=(255, 255, 255))
     y += 60
     ubicacion = datos.get('direccion', '')
     if len(ubicacion) > 22:
         ubicacion = ubicacion[:19] + "..."
-    draw.text((PAD, y), ubicacion, font=_obtener_fuente(22), fill=(180, 180, 180))
+    draw.text((PAD, y), ubicacion, font=_obtener_fuente(26), fill=(180, 180, 180))
     y += 25
     ciudad = datos.get('ciudad_estado', '')
     if len(ciudad) > 22:
         ciudad = ciudad[:19] + "..."
-    draw.text((PAD, y), ciudad, font=_obtener_fuente(22), fill=(180, 180, 180))
+    draw.text((PAD, y), ciudad, font=_obtener_fuente(26), fill=(180, 180, 180))
     y += 50
-    icon_s = 32
+    icon_s = 38
     metrics = []
     if datos.get("habitaciones"):
         metrics.append(("cama", f"{datos['habitaciones']} Hab"))
@@ -213,13 +212,13 @@ def _componer_moderna(img, datos, branding, dorado):
         metrics.append(("auto", f"{datos['estacionamientos']} Est."))
     icon_map = {"cama": _icono_cama, "bano": _icono_bano, "area": _icono_area, "auto": _icono_auto}
     for icon_type, text in metrics:
-        icon_map[icon_type](draw, PAD, y, icon_s, dorado, width=2)
-        draw.text((PAD + 50, y + 3), text, font=_obtener_fuente(24, bold=True), fill=(255, 255, 255))
-        y += 42
+        icon_map[icon_type](draw, PAD, y, icon_s, dorado, width=3)
+        draw.text((PAD + 55, y + 5), text, font=_obtener_fuente(28, bold=True), fill=(255, 255, 255))
+        y += 48
     y_agente = H - 110
     draw.rectangle([(PAD, y_agente - 8), (BARRA_W - PAD, y_agente - 3)], fill=dorado)
-    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(26, bold=True), fill=dorado)
-    draw.text((PAD, y_agente + 30), datos.get("telefono_agente", ""), font=_obtener_fuente(22), fill=(255, 255, 255))
+    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(30, bold=True), fill=dorado)
+    draw.text((PAD, y_agente + 30), datos.get("telefono_agente", ""), font=_obtener_fuente(26), fill=(255, 255, 255))
     return img
 
 def _componer_elegante(img, datos, branding, dorado):
@@ -235,28 +234,28 @@ def _componer_elegante(img, datos, branding, dorado):
             logo.thumbnail((110, 70), Image.LANCZOS)
             img.paste(logo, (PAD, PAD), logo)
         except:
-            draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=(255, 255, 255))
+            draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(48, bold=True), fill=(255, 255, 255))
     precio = _precio_fmt(datos)
     y_precio = int(H * 0.35)
-    p_w = draw.textlength(precio, font=_obtener_fuente(88, bold=True))
-    draw.text(((W - p_w) // 2, y_precio), precio, font=_obtener_fuente(88, bold=True), fill=(255, 255, 255))
+    p_w = draw.textlength(precio, font=_obtener_fuente(96, bold=True))
+    draw.text(((W - p_w) // 2, y_precio), precio, font=_obtener_fuente(96, bold=True), fill=(255, 255, 255))
     linea_w = min(p_w + 100, W - 2 * PAD)
     lx = (W - linea_w) // 2
     y_linea = y_precio + 95
     draw.rectangle([(lx, y_linea), (lx + linea_w, y_linea + 2)], fill=dorado)
     etiqueta = f"{datos.get('tipo_propiedad', '')} EN {datos.get('operacion', '')}".upper()
-    et_w = draw.textlength(etiqueta, font=_obtener_fuente(32, bold=True))
-    draw.text(((W - et_w) // 2, y_linea + 15), etiqueta, font=_obtener_fuente(32, bold=True), fill=dorado)
+    et_w = draw.textlength(etiqueta, font=_obtener_fuente(36, bold=True))
+    draw.text(((W - et_w) // 2, y_linea + 15), etiqueta, font=_obtener_fuente(36, bold=True), fill=dorado)
     ubicacion = f"{datos.get('direccion', '')}, {datos.get('ciudad_estado', '')}"
     if len(ubicacion) > 60:
         ubicacion = ubicacion[:57] + "..."
-    ub_w = draw.textlength(ubicacion, font=_obtener_fuente(28))
-    draw.text(((W - ub_w) // 2, y_linea + 60), ubicacion, font=_obtener_fuente(28), fill=(220, 220, 220))
+    ub_w = draw.textlength(ubicacion, font=_obtener_fuente(32))
+    draw.text(((W - ub_w) // 2, y_linea + 60), ubicacion, font=_obtener_fuente(32), fill=(220, 220, 220))
     y_ag = H - 90
-    ag_w = draw.textlength(datos.get("nombre_agente", ""), font=_obtener_fuente(30, bold=True))
-    draw.text(((W - ag_w) // 2, y_ag), datos.get("nombre_agente", ""), font=_obtener_fuente(30, bold=True), fill=dorado)
-    tel_w = draw.textlength(datos.get("telefono_agente", ""), font=_obtener_fuente(26))
-    draw.text(((W - tel_w) // 2, y_ag + 35), datos.get("telefono_agente", ""), font=_obtener_fuente(26), fill=(200, 200, 200))
+    ag_w = draw.textlength(datos.get("nombre_agente", ""), font=_obtener_fuente(34, bold=True))
+    draw.text(((W - ag_w) // 2, y_ag), datos.get("nombre_agente", ""), font=_obtener_fuente(34, bold=True), fill=dorado)
+    tel_w = draw.textlength(datos.get("telefono_agente", ""), font=_obtener_fuente(30))
+    draw.text(((W - tel_w) // 2, y_ag + 35), datos.get("telefono_agente", ""), font=_obtener_fuente(30), fill=(200, 200, 200))
     return img
 
 def _componer_impacto(img, datos, branding, dorado):
@@ -284,24 +283,24 @@ def _componer_impacto(img, datos, branding, dorado):
             logo.thumbnail((120, 80), Image.LANCZOS)
             img.paste(logo, (PAD, PAD), logo)
         except:
-            draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=(255, 255, 255))
+            draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(48, bold=True), fill=(255, 255, 255))
     precio = _precio_fmt(datos)
     y_precio = int(H * 0.32)
-    p_w = draw.textlength(precio, font=_obtener_fuente(108, bold=True))
-    draw.text(((W - p_w) // 2, y_precio), precio, font=_obtener_fuente(108, bold=True), fill=(255, 255, 255))
+    p_w = draw.textlength(precio, font=_obtener_fuente(118, bold=True))
+    draw.text(((W - p_w) // 2, y_precio), precio, font=_obtener_fuente(118, bold=True), fill=(255, 255, 255))
     etiqueta = f"{datos.get('tipo_propiedad', '')} EN {datos.get('operacion', '')}".upper()
-    et_w = draw.textlength(etiqueta, font=_obtener_fuente(36, bold=True))
-    draw.text(((W - et_w) // 2, y_precio - 65), etiqueta, font=_obtener_fuente(36, bold=True), fill=dorado)
+    et_w = draw.textlength(etiqueta, font=_obtener_fuente(40, bold=True))
+    draw.text(((W - et_w) // 2, y_precio - 65), etiqueta, font=_obtener_fuente(40, bold=True), fill=dorado)
     ubicacion = f"{datos.get('direccion', '')}, {datos.get('ciudad_estado', '')}"
     if len(ubicacion) > 55:
         ubicacion = ubicacion[:52] + "..."
-    ub_w = draw.textlength(ubicacion, font=_obtener_fuente(28))
-    draw.text(((W - ub_w) // 2, int(H * 0.68)), ubicacion, font=_obtener_fuente(28), fill=(220, 220, 220))
+    ub_w = draw.textlength(ubicacion, font=_obtener_fuente(32))
+    draw.text(((W - ub_w) // 2, int(H * 0.68)), ubicacion, font=_obtener_fuente(32), fill=(220, 220, 220))
     y_ag = H - 100
-    ag_w = draw.textlength(datos.get("nombre_agente", ""), font=_obtener_fuente(32, bold=True))
-    draw.text(((W - ag_w) // 2, y_ag), datos.get("nombre_agente", ""), font=_obtener_fuente(32, bold=True), fill=dorado)
-    tel_w = draw.textlength(datos.get("telefono_agente", ""), font=_obtener_fuente(28))
-    draw.text(((W - tel_w) // 2, y_ag + 40), datos.get("telefono_agente", ""), font=_obtener_fuente(28), fill=(255, 255, 255))
+    ag_w = draw.textlength(datos.get("nombre_agente", ""), font=_obtener_fuente(36, bold=True))
+    draw.text(((W - ag_w) // 2, y_ag), datos.get("nombre_agente", ""), font=_obtener_fuente(36, bold=True), fill=dorado)
+    tel_w = draw.textlength(datos.get("telefono_agente", ""), font=_obtener_fuente(32))
+    draw.text(((W - tel_w) // 2, y_ag + 40), datos.get("telefono_agente", ""), font=_obtener_fuente(32), fill=(255, 255, 255))
     return img
 
 def _componer_original(img, datos, branding, dorado):
@@ -344,7 +343,6 @@ def componer_overlay_extras(extras_paths: list, datos: dict) -> list:
 def componer_collage(portada_path: str, extras_paths: list, datos: dict) -> str:
     branding = get_branding()
     dorado = hex_to_rgb(branding["color_secundario"])
-    agencia = branding["nombre_agencia"]
     rutas = [r for r in ([portada_path] + list(extras_paths or [])) if r and Path(r).exists()][:4]
     if not rutas:
         return ""
@@ -383,6 +381,6 @@ def componer_collage(portada_path: str, extras_paths: list, datos: dict) -> str:
     canvas = Image.alpha_composite(canvas, overlay)
     draw = ImageDraw.Draw(canvas)
     PAD = 40
-    draw.text((PAD, SIZE - 110), _precio_fmt(datos), font=_obtener_fuente(60, bold=True), fill=(255, 255, 255))
-    draw.text((PAD, SIZE - 50), datos.get("nombre_agente", ""), font=_obtener_fuente(30, bold=True), fill=dorado)
+    draw.text((PAD, SIZE - 110), _precio_fmt(datos), font=_obtener_fuente(68, bold=True), fill=(255, 255, 255))
+    draw.text((PAD, SIZE - 50), datos.get("nombre_agente", ""), font=_obtener_fuente(36, bold=True), fill=dorado)
     return _guardar(canvas, "collage")
