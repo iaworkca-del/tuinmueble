@@ -223,7 +223,7 @@ body.publico {
 }
 .pub-prop-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
 .pub-prop-img {
-  width: 100%; height: 220px; object-fit: cover; display: block;
+  width: 100%; height: auto; aspect-ratio: 1/1; object-fit: contain; display: block;
   background: #ddd;
 }
 .pub-prop-body { padding: 1.2rem 1.3rem 1.4rem; }

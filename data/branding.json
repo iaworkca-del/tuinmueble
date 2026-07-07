@@ -14,5 +14,7 @@
   "servicio_2_titulo": "Alquiler de inmuebles",
   "servicio_2_desc": "Encontramos el inquilino o la propiedad ideal para ti, con contratos claros y seguros.",
   "servicio_3_titulo": "Asesoría inmobiliaria",
-  "servicio_3_desc": "Te asesoramos con información del mercado para que tomes la mejor decisión de inversión."
+  "servicio_3_desc": "Te asesoramos con información del mercado para que tomes la mejor decisión de inversión.",
+  "franja_opacidad": "50",
+  "franja_tamano": "20"
 }

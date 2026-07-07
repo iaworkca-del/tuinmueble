@@ -102,7 +102,8 @@ def _componer_clasica(img, datos, branding, dorado):
     overlay.paste(franja_top, (0, 0))
     franja_pct = max(15, min(40, int(branding.get("franja_tamano", 20)))) / 100
     franja_alpha = int(max(0, min(100, int(branding.get("franja_opacidad", 50)))) * 2.55)
-    FRANJA_H = int(W * franja_pct)
+    MARGEN_INFERIOR = int(W * 0.04)
+    FRANJA_H = int(W * franja_pct) + MARGEN_INFERIOR
     franja_bot = Image.new("RGBA", (W, FRANJA_H), (0, 0, 0, 0))
     db = ImageDraw.Draw(franja_bot)
     for y in range(FRANJA_H):
