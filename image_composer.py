@@ -94,64 +94,70 @@ def _componer_clasica(img, datos, branding, dorado):
     W, H = img.size
     PAD = 50
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    franja_top = Image.new("RGBA", (W, 200), (0, 0, 0, 0))
+    franja_top = Image.new("RGBA", (W, 160), (0, 0, 0, 0))
     dt = ImageDraw.Draw(franja_top)
-    for y in range(200):
-        alpha = int(180 * (y / 200))
+    for y in range(160):
+        alpha = int(160 * (1 - y / 160))
         dt.rectangle([(0, y), (W, y + 1)], fill=(0, 0, 0, alpha))
     overlay.paste(franja_top, (0, 0))
-    franja_bot = Image.new("RGBA", (W, 350), (0, 0, 0, 0))
+    FRANJA_H = 420
+    franja_bot = Image.new("RGBA", (W, FRANJA_H), (0, 0, 0, 0))
     db = ImageDraw.Draw(franja_bot)
-    for y in range(350):
-        alpha = int(220 * ((350 - y) / 350))
+    for y in range(FRANJA_H):
+        alpha = int(160 * (1 - y / FRANJA_H))
         db.rectangle([(0, y), (W, y + 1)], fill=(0, 0, 0, alpha))
-    overlay.paste(franja_bot, (0, H - 350))
+    overlay.paste(franja_bot, (0, H - FRANJA_H))
     img = Image.alpha_composite(img, overlay)
     draw = ImageDraw.Draw(img)
     if LOGO_PATH.exists():
         try:
             logo = Image.open(LOGO_PATH).convert("RGBA")
             logo.thumbnail((120, 80), Image.LANCZOS)
-            img.paste(logo, (PAD, PAD), logo)
+            img.paste(logo, (PAD, 30), logo)
         except:
-            draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(48, bold=True), fill=(255, 255, 255))
+            draw.text((PAD, 30), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=(255, 255, 255))
     else:
-        draw.text((PAD, PAD), branding["nombre_agencia"], font=_obtener_fuente(48, bold=True), fill=(255, 255, 255))
-    draw.rectangle([(PAD, 100), (PAD + 200, 105)], fill=dorado)
-    etiqueta = f"{datos.get('tipo_propiedad', '')} / {datos.get('operacion', '')}"
-    f_et = _obtener_fuente(40, bold=True)
+        draw.text((PAD, 30), branding["nombre_agencia"], font=_obtener_fuente(42, bold=True), fill=(255, 255, 255))
+    etiqueta = f"{datos.get('tipo_propiedad', '')} en {datos.get('operacion', '')}"
+    f_et = _obtener_fuente(38, bold=True)
     et_w = draw.textlength(etiqueta, font=f_et)
-    draw.text((W - PAD - et_w, PAD + 10), etiqueta, font=f_et, fill=dorado)
-    y_precio = H - 320
-    draw.text((PAD, y_precio), _precio_fmt(datos), font=_obtener_fuente(90, bold=True), fill=(255, 255, 255))
+    draw.text((W - PAD - et_w, 45), etiqueta, font=f_et, fill=dorado)
+    y_precio = H - FRANJA_H + 60
+    draw.text((PAD, y_precio), _precio_fmt(datos), font=_obtener_fuente(72, bold=True), fill=(255, 255, 255))
     ubicacion = f"{datos.get('direccion', '')}, {datos.get('ciudad_estado', '')}"
-    if len(ubicacion) > 60:
-        ubicacion = ubicacion[:57] + "..."
-    y_ubic = y_precio + 85
-    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(32), fill=(200, 200, 200))
-    draw.rectangle([(PAD, y_ubic + 40), (PAD + 200, y_ubic + 45)], fill=dorado)
-    y_metricas = y_ubic + 60
-    x_m = PAD
-    icon_size = 40
+    if len(ubicacion) > 55:
+        ubicacion = ubicacion[:52] + " ..."
+    y_ubic = y_precio + 80
+    draw.text((PAD, y_ubic), ubicacion, font=_obtener_fuente(28), fill=(200, 200, 200))
+    y_linea = y_ubic + 42
+    draw.rectangle([(PAD, y_linea), (W - PAD, y_linea + 4)], fill=dorado)
+    y_metricas = y_linea + 18
+    icon_size = 36
+    metricas = []
     if datos.get("habitaciones"):
-        _icono_cama(draw, x_m, y_metricas, icon_size, dorado, width=4)
-        draw.text((x_m + 55, y_metricas + 5), f"{datos['habitaciones']} Hab", font=_obtener_fuente(30, bold=True), fill=(255, 255, 255))
-        x_m += 200
+        metricas.append(("cama", f"{datos['habitaciones']} Hab"))
     if datos.get("banos"):
-        _icono_bano(draw, x_m, y_metricas, icon_size, dorado, width=4)
-        draw.text((x_m + 55, y_metricas + 5), f"{datos['banos']} Baños", font=_obtener_fuente(30, bold=True), fill=(255, 255, 255))
-        x_m += 220
+        metricas.append(("bano", f"{datos['banos']} Baños"))
     if datos.get("metros_construidos"):
-        _icono_area(draw, x_m, y_metricas, icon_size, dorado, width=4)
-        draw.text((x_m + 55, y_metricas + 5), f"{_num(datos['metros_construidos'])} m²", font=_obtener_fuente(30, bold=True), fill=(255, 255, 255))
-        x_m += 220
+        metricas.append(("area", f"{_num(datos['metros_construidos'])} m²"))
     if datos.get("estacionamientos"):
-        _icono_auto(draw, x_m, y_metricas, icon_size, dorado, width=4)
-        draw.text((x_m + 55, y_metricas + 5), f"{datos['estacionamientos']} Est.", font=_obtener_fuente(30, bold=True), fill=(255, 255, 255))
-    y_agente = H - 95
-    draw.rectangle([(PAD, y_agente - 10), (PAD + 250, y_agente - 5)], fill=dorado)
-    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(34, bold=True), fill=dorado)
-    draw.text((PAD, y_agente + 35), datos.get("telefono_agente", ""), font=_obtener_fuente(30), fill=(255, 255, 255))
+        metricas.append(("auto", f"{datos['estacionamientos']} Estacionamiento"))
+    icon_map = {"cama": _icono_cama, "bano": _icono_bano, "area": _icono_area, "auto": _icono_auto}
+    f_met = _obtener_fuente(28, bold=True)
+    total_w = 0
+    for icon_type, text in metricas:
+        total_w += icon_size + 10 + draw.textlength(text, font=f_met) + 30
+    total_w -= 30
+    x_m = PAD
+    if total_w > W - 2 * PAD:
+        f_met = _obtener_fuente(24, bold=True)
+    for icon_type, text in metricas:
+        icon_map[icon_type](draw, x_m, y_metricas, icon_size, dorado, width=3)
+        draw.text((x_m + icon_size + 10, y_metricas + 4), text, font=f_met, fill=(255, 255, 255))
+        x_m += icon_size + 10 + int(draw.textlength(text, font=f_met)) + 30
+    y_agente = H - 100
+    draw.text((PAD, y_agente), datos.get("nombre_agente", ""), font=_obtener_fuente(32, bold=True), fill=dorado)
+    draw.text((PAD, y_agente + 38), datos.get("telefono_agente", ""), font=_obtener_fuente(28), fill=(255, 255, 255))
     return img
 
 def _componer_moderna(img, datos, branding, dorado):
