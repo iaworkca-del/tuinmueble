@@ -163,6 +163,34 @@
           <small>Precio grande, acento diagonal</small>
         </label>
       </div>
+
+      <div style="margin-top:1.2rem; padding-top:1rem; border-top:1px solid #eee;">
+        <h3 style="font-size:1rem; margin:0 0 0.8rem;">Ajustes de la franja inferior</h3>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label for="franja_opacidad" style="font-size:0.9rem;">
+              Transparencia de la franja: <strong id="franja-op-valor">{{ branding.franja_opacidad|default('75') }}%</strong>
+            </label>
+            <input type="range" name="franja_opacidad" id="franja_opacidad"
+                   min="0" max="100" value="{{ branding.franja_opacidad|default('75') }}"
+                   style="width:100%; margin-top:0.4rem; accent-color:{{ branding.color_secundario }};" />
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#999;">
+              <span>Transparente</span><span>Oscuro</span>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label for="franja_tamano" style="font-size:0.9rem;">
+              Tamaño de la franja: <strong id="franja-tam-valor">{{ branding.franja_tamano|default('25') }}%</strong>
+            </label>
+            <input type="range" name="franja_tamano" id="franja_tamano"
+                   min="15" max="40" value="{{ branding.franja_tamano|default('25') }}"
+                   style="width:100%; margin-top:0.4rem; accent-color:{{ branding.color_secundario }};" />
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#999;">
+              <span>Más pequeña</span><span>Más grande</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -250,6 +278,18 @@
       r.closest('.plantilla-opcion').classList.add('activa');
     });
   });
+  var franjaOp = document.getElementById('franja_opacidad');
+  if (franjaOp) {
+    franjaOp.addEventListener('input', function () {
+      document.getElementById('franja-op-valor').textContent = this.value + '%';
+    });
+  }
+  var franjaTam = document.getElementById('franja_tamano');
+  if (franjaTam) {
+    franjaTam.addEventListener('input', function () {
+      document.getElementById('franja-tam-valor').textContent = this.value + '%';
+    });
+  }
   var sliderOp = document.getElementById('fondo_opacidad');
   if (sliderOp) {
     sliderOp.addEventListener('input', function () {
