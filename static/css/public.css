@@ -21,7 +21,7 @@ body.publico {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.7rem 2.2rem;
+  padding: 1.1rem 2.2rem;
   background: rgba(10, 20, 30, 0.35);
   backdrop-filter: blur(6px);
   transition: background 0.3s ease;
@@ -41,9 +41,9 @@ body.publico {
   text-decoration: none;
 }
 .pub-nav .marca-logo {
-  height: 64px;
+  height: 60px;
   width: auto;
-  max-width: 220px;
+  max-width: 200px;
   object-fit: contain;
 }
 .pub-nav .marca span { color: var(--pub-secundario); }
