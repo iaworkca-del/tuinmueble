@@ -138,6 +138,7 @@ def fondo_url(agente: dict = None) -> str:
 def get_branding(agente: dict = None) -> dict:
     data = _cargar_guardado(agente)
     data["fondo"] = fondo_url(agente)
+    data["logo"] = logo_url(agente)
     return data
 
 

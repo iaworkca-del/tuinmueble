@@ -16,7 +16,12 @@
 <body class="publico">
 
 <nav class="pub-nav">
-  <a href="/" class="marca">{{ branding.nombre_agencia }}<span>.</span></a>
+  <a href="/" class="marca">
+    {% if branding.logo %}
+    <img src="{{ branding.logo }}" alt="{{ branding.nombre_agencia }}" class="marca-logo" />
+    {% endif %}
+    {{ branding.nombre_agencia }}<span>.</span>
+  </a>
   <div class="links">
     <a href="/" class="link">Inicio</a>
     <a href="/servicios" class="link">Servicios</a>

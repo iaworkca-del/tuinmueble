@@ -38,21 +38,6 @@
       <h2>Marca de la agencia</h2>
       <div class="form-grid">
         <div class="form-group full">
-          <label for="nombre_agencia">Nombre de la agencia</label>
-          <input type="text" name="nombre_agencia" id="nombre_agencia"
-                 value="{{ branding.nombre_agencia }}" required />
-        </div>
-        <div class="form-group">
-          <label for="color_primario">Color primario</label>
-          <input type="color" name="color_primario" id="color_primario"
-                 value="{{ branding.color_primario }}" style="height:48px; padding:4px;" />
-        </div>
-        <div class="form-group">
-          <label for="color_secundario">Color secundario (acentos)</label>
-          <input type="color" name="color_secundario" id="color_secundario"
-                 value="{{ branding.color_secundario }}" style="height:48px; padding:4px;" />
-        </div>
-        <div class="form-group full">
           <label>Logo de la agencia (PNG con fondo transparente)</label>
           <label class="file-label" for="logo">
             <span>Clic para subir tu logo</span>
@@ -67,6 +52,21 @@
                  style="max-height:70px; margin-top:0.4rem; background:#1a3a5c; padding:8px; border-radius:6px;" />
           </div>
           {% endif %}
+        </div>
+        <div class="form-group full">
+          <label for="nombre_agencia">Nombre de la agencia</label>
+          <input type="text" name="nombre_agencia" id="nombre_agencia"
+                 value="{{ branding.nombre_agencia }}" required />
+        </div>
+        <div class="form-group">
+          <label for="color_primario">Color primario</label>
+          <input type="color" name="color_primario" id="color_primario"
+                 value="{{ branding.color_primario }}" style="height:48px; padding:4px;" />
+        </div>
+        <div class="form-group">
+          <label for="color_secundario">Color secundario (acentos)</label>
+          <input type="color" name="color_secundario" id="color_secundario"
+                 value="{{ branding.color_secundario }}" style="height:48px; padding:4px;" />
         </div>
         <div class="form-group full">
           <label>Imagen de fondo (efecto parallax)</label>
