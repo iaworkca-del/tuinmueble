@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+python-multipart
+anthropic
+python-dotenv
+jinja2
+aiofiles
+Pillow
+reportlab
+httpx
+bcrypt
+itsdangerous
+starlette

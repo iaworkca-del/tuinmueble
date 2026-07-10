@@ -1,0 +1,2 @@
+attached_assets/Agente_Inmobiliaria_1783014552462.zip filter=lfs diff=lfs merge=lfs -text
+zipFile.zip filter=lfs diff=lfs merge=lfs -text

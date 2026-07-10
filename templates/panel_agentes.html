@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentes — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .badge-plan {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-vitalicio { background: #27ae60; color: #fff; }
+    .badge-mensual  { background: #2980b9; color: #fff; }
+    .badge-anual    { background: #8e44ad; color: #fff; }
+    .badge-prueba   { background: #f39c12; color: #fff; }
+    .badge-vencido  { background: #c0392b; color: #fff; }
+    .sub-form {
+      background: #f8f9fa;
+      border: 1px solid var(--gris);
+      border-radius: 10px;
+      padding: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .sub-form .sub-row {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .sub-form label {
+      font-size: 0.75rem;
+      color: #555;
+      font-weight: 600;
+      min-width: 50px;
+    }
+    .sub-form select, .sub-form input[type="date"] {
+      font-size: 0.78rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .sub-form input[type="date"] {
+      flex: 1;
+      min-width: 130px;
+    }
+    .sub-form .btn-asignar {
+      background: var(--azul);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      width: 100%;
+    }
+    .sub-form .btn-asignar:hover { opacity: 0.85; }
+    .sub-form .sub-duracion {
+      font-size: 0.72rem;
+      color: #888;
+      text-align: right;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia }}</div>
+    <p>Gestión de agentes</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">📊 Dashboard</a>
+    <a href="/panel/crear" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
+</header>
+
+<div class="container">
+
+  {% if mensaje %}
+  <div class="card" style="border-left:4px solid #27ae60;">{{ mensaje }}</div>
+  {% endif %}
+  {% if error %}
+  <div class="card" style="border-left:4px solid #c0392b;">{{ error }}</div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Crear nuevo agente</h2>
+    <form action="/panel/agentes" method="post" class="form-grid">
+      <div class="form-group">
+        <label for="usuario">Usuario</label>
+        <input type="text" name="usuario" id="usuario" required />
+      </div>
+      <div class="form-group">
+        <label for="nombre_completo">Nombre completo</label>
+        <input type="text" name="nombre_completo" id="nombre_completo" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" name="password" id="password" required minlength="6" />
+      </div>
+      <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-top:1.6rem;">
+        <input type="checkbox" name="es_admin" id="es_admin" value="1" style="width:auto;" />
+        <label for="es_admin" style="margin:0;">Es administrador</label>
+      </div>
+      <div class="form-group full">
+        <button type="submit" class="btn-primary" style="width:auto; padding:0.7rem 2rem;">Crear agente</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Agentes registrados</h2>
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="text-align:left; border-bottom:2px solid var(--gris);">
+          <th style="padding:0.6rem;">Usuario</th>
+          <th style="padding:0.6rem;">Nombre</th>
+          <th style="padding:0.6rem;">Rol</th>
+          <th style="padding:0.6rem;">Plan</th>
+          <th style="padding:0.6rem;">Estado</th>
+          <th style="padding:0.6rem;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in agentes %}
+        <tr style="border-bottom:1px solid var(--gris);">
+          <td style="padding:0.6rem;">{{ a.usuario }}</td>
+          <td style="padding:0.6rem;">{{ a.nombre_completo }}</td>
+          <td style="padding:0.6rem;">{{ "Administrador" if a.es_admin else "Agente" }}</td>
+          <td style="padding:0.6rem;">
+            {% set plan = a.plan or 'prueba' %}
+            {% if plan == 'vitalicio' %}
+              <span class="badge-plan badge-vitalicio">Vitalicio</span>
+            {% elif plan == 'anual' %}
+              <span class="badge-plan badge-anual">Anual</span>
+            {% elif plan == 'mensual' %}
+              <span class="badge-plan badge-mensual">Mensual</span>
+            {% else %}
+              <span class="badge-plan badge-prueba">Prueba</span>
+            {% endif %}
+            {% if a.suscripcion_fin %}
+              <br/><small style="color:#888;">Hasta: {{ a.suscripcion_fin[:10] }}</small>
+            {% endif %}
+          </td>
+          <td style="padding:0.6rem;">
+            {% if a.activo %}<span style="color:#27ae60;">Activo</span>{% else %}<span style="color:#c0392b;">Inactivo</span>{% endif %}
+          </td>
+          <td style="padding:0.6rem;">
+            {% if a.id != agente_actual_id %}
+            <div style="display:flex; flex-direction:column; gap:0.4rem;">
+              <div style="display:flex; gap:0.4rem;">
+                <form action="/panel/agentes/{{ a.id }}/estado" method="post">
+                  <input type="hidden" name="activo" value="{{ 0 if a.activo else 1 }}" />
+                  <button type="submit" class="btn-secondary" style="font-size:0.8rem; padding:0.4rem 0.8rem;">
+                    {{ "Desactivar" if a.activo else "Activar" }}
+                  </button>
+                </form>
+                <form action="/panel/agentes/{{ a.id }}/eliminar" method="post" onsubmit="return confirm('¿Eliminar este agente?');">
+                  <button type="submit" class="btn-secondary" style="font-size:0.8rem; padding:0.4rem 0.8rem; color:#c0392b;">Eliminar</button>
+                </form>
+              </div>
+              <form action="/panel/agentes/{{ a.id }}/suscripcion" method="post" class="sub-form" id="subForm{{ a.id }}">
+                <div class="sub-row">
+                  <label>Plan</label>
+                  <select name="plan" onchange="actualizarFechas({{ a.id }}, this.value)">
+                    <option value="prueba" {{ 'selected' if plan == 'prueba' }}>Prueba (7 días)</option>
+                    <option value="mensual" {{ 'selected' if plan == 'mensual' }}>Mensual (30 días)</option>
+                    <option value="anual" {{ 'selected' if plan == 'anual' }}>Anual (365 días)</option>
+                    <option value="vitalicio" {{ 'selected' if plan == 'vitalicio' }}>Vitalicio</option>
+                  </select>
+                </div>
+                <div class="sub-row">
+                  <label>Inicio</label>
+                  <input type="date" name="fecha_inicio" id="inicio{{ a.id }}"
+                         value="{{ a.suscripcion_inicio[:10] if a.suscripcion_inicio else '' }}"
+                         onchange="recalcularFin({{ a.id }})" />
+                </div>
+                <div class="sub-row" id="rowFin{{ a.id }}" {% if plan == 'vitalicio' %}style="display:none;"{% endif %}>
+                  <label>Fin</label>
+                  <input type="date" name="fecha_fin" id="fin{{ a.id }}"
+                         value="{{ a.suscripcion_fin[:10] if a.suscripcion_fin else '' }}" />
+                  <span class="sub-duracion" id="duracion{{ a.id }}"></span>
+                </div>
+                <button type="submit" class="btn-asignar">Asignar plan</button>
+              </form>
+            </div>
+            {% else %}
+            <span style="color:#888; font-size:0.8rem;">(tú)</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const DIAS_PLAN = { prueba: 7, mensual: 30, anual: 365 };
+
+function fechaISO(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function actualizarFechas(id, plan) {
+  const inicio = document.getElementById('inicio' + id);
+  const rowFin = document.getElementById('rowFin' + id);
+
+  if (plan === 'vitalicio') {
+    rowFin.style.display = 'none';
+    if (!inicio.value) inicio.value = fechaISO(new Date());
+    return;
+  }
+  rowFin.style.display = '';
+
+  const hoy = new Date();
+  if (!inicio.value) inicio.value = fechaISO(hoy);
+
+  const dias = DIAS_PLAN[plan] || 30;
+  const fi = new Date(inicio.value + 'T00:00:00');
+  const ff = new Date(fi);
+  ff.setDate(ff.getDate() + dias);
+  document.getElementById('fin' + id).value = fechaISO(ff);
+
+  mostrarDuracion(id);
+}
+
+function recalcularFin(id) {
+  const form = document.getElementById('subForm' + id);
+  const plan = form.querySelector('select[name="plan"]').value;
+  if (plan === 'vitalicio') return;
+
+  const dias = DIAS_PLAN[plan] || 30;
+  const fi = new Date(document.getElementById('inicio' + id).value + 'T00:00:00');
+  const ff = new Date(fi);
+  ff.setDate(ff.getDate() + dias);
+  document.getElementById('fin' + id).value = fechaISO(ff);
+
+  mostrarDuracion(id);
+}
+
+function mostrarDuracion(id) {
+  const inicio = document.getElementById('inicio' + id).value;
+  const fin = document.getElementById('fin' + id).value;
+  const span = document.getElementById('duracion' + id);
+  if (!inicio || !fin) { span.textContent = ''; return; }
+  const diff = Math.round((new Date(fin) - new Date(inicio)) / 86400000);
+  span.textContent = diff + ' día' + (diff !== 1 ? 's' : '');
+}
+
+// Calcular duraciones al cargar
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[id^="duracion"]').forEach(function(el) {
+    const id = el.id.replace('duracion', '');
+    mostrarDuracion(id);
+  });
+});
+</script>
+</body>
+</html>

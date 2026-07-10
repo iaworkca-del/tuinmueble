@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuración — Mi Propiedad</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="{{ 'con-fondo' if branding and branding.fondo else '' }}">
+{% if branding and branding.fondo %}
+<div class="parallax-fondo" style="background-image:url('{{ branding.fondo }}')"></div>
+<div class="parallax-velo" style="opacity:{{ ((100 - branding.fondo_opacidad|int) / 100) }}"></div>
+{% endif %}
+
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia }}</div>
+    <p>Configuración de marca</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">📊 Dashboard</a>
+    <a href="/panel/crear" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
+</header>
+
+<div class="container">
+
+  {% if guardado %}
+  <div class="card" style="border-left:4px solid #27ae60;">
+    ✅ Configuración guardada correctamente.
+  </div>
+  {% endif %}
+
+  <form action="/configuracion" method="post" enctype="multipart/form-data">
+
+    <div class="card">
+      <h2>Marca de la agencia</h2>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="nombre_agencia">Nombre de la agencia</label>
+          <input type="text" name="nombre_agencia" id="nombre_agencia"
+                 value="{{ branding.nombre_agencia }}" required />
+        </div>
+        <div class="form-group">
+          <label for="color_primario">Color primario</label>
+          <input type="color" name="color_primario" id="color_primario"
+                 value="{{ branding.color_primario }}" style="height:48px; padding:4px;" />
+        </div>
+        <div class="form-group">
+          <label for="color_secundario">Color secundario (acentos)</label>
+          <input type="color" name="color_secundario" id="color_secundario"
+                 value="{{ branding.color_secundario }}" style="height:48px; padding:4px;" />
+        </div>
+        <div class="form-group full">
+          <label>Logo de la agencia (PNG con fondo transparente)</label>
+          <label class="file-label" for="logo">
+            <span>Clic para subir tu logo</span>
+            <small>Se usará en las imágenes y el PDF</small>
+          </label>
+          <input type="file" name="logo" id="logo" accept="image/png,image/*" />
+          <div class="file-name" id="logo-name"></div>
+          {% if logo_existe %}
+          <div style="margin-top:0.6rem;">
+            <span style="font-size:0.85rem; color:#666;">Logo actual:</span><br/>
+            <img src="{{ logo_url }}?v={{ cache_bust }}" alt="Logo actual"
+                 style="max-height:70px; margin-top:0.4rem; background:#1a3a5c; padding:8px; border-radius:6px;" />
+          </div>
+          {% endif %}
+        </div>
+        <div class="form-group full">
+          <label>Imagen de fondo (efecto parallax)</label>
+          <label class="file-label" for="fondo">
+            <span>Clic para subir una imagen de fondo</span>
+            <small>Se mostrará detrás de la app con efecto de movimiento</small>
+          </label>
+          <input type="file" name="fondo" id="fondo" accept="image/*" />
+          <div class="file-name" id="fondo-name"></div>
+          {% if branding.fondo %}
+          <div style="margin-top:0.6rem;">
+            <span style="font-size:0.85rem; color:#666;">Fondo actual:</span><br/>
+            <img src="{{ branding.fondo }}" alt="Fondo actual"
+                 style="max-height:120px; width:100%; object-fit:cover; margin-top:0.4rem; border-radius:6px;" />
+          </div>
+          <div style="margin-top:1rem;">
+            <label for="fondo_opacidad" style="font-size:0.9rem;">
+              Visibilidad del fondo: <strong id="opacidad-valor">{{ branding.fondo_opacidad }}%</strong>
+            </label>
+            <input type="range" name="fondo_opacidad" id="fondo_opacidad"
+                   min="0" max="100" value="{{ branding.fondo_opacidad }}"
+                   style="width:100%; margin-top:0.4rem; accent-color:{{ branding.color_secundario }};" />
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#999;">
+              <span>Más tenue</span><span>Más visible</span>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Plantilla de imagen</h2>
+      <p style="font-size:0.85rem; color:#888; margin-bottom:1rem;">
+        Elige el diseño que se aplicará a las fotos de tus propiedades.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
+        {% set pl = branding.plantilla or 'clasica' %}
+        <label class="plantilla-opcion{{ ' activa' if pl == 'original' else '' }}" for="pl_original">
+          <input type="radio" name="plantilla" id="pl_original" value="original"
+                 {{ 'checked' if pl == 'original' else '' }} />
+          <div class="plantilla-preview original-prev">
+            <div class="pp-foto-icon">&#128247;</div>
+          </div>
+          <span class="plantilla-nombre">Original</span>
+          <small>Foto limpia, sin overlay ni texto</small>
+        </label>
+        <label class="plantilla-opcion{{ ' activa' if pl == 'clasica' else '' }}" for="pl_clasica">
+          <input type="radio" name="plantilla" id="pl_clasica" value="clasica"
+                 {{ 'checked' if pl == 'clasica' else '' }} />
+          <div class="plantilla-preview clasica-prev">
+            <div class="pp-top"></div>
+            <div class="pp-bottom">
+              <div class="pp-precio"></div>
+              <div class="pp-iconos"></div>
+            </div>
+          </div>
+          <span class="plantilla-nombre">Clásica</span>
+          <small>Franjas arriba y abajo, logo e íconos</small>
+        </label>
+        <label class="plantilla-opcion{{ ' activa' if pl == 'elegante' else '' }}" for="pl_elegante">
+          <input type="radio" name="plantilla" id="pl_elegante" value="elegante"
+                 {{ 'checked' if pl == 'elegante' else '' }} />
+          <div class="plantilla-preview elegante-prev">
+            <div class="pp-marco"></div>
+            <div class="pp-center">
+              <div class="pp-precio"></div>
+              <div class="pp-linea"></div>
+            </div>
+          </div>
+          <span class="plantilla-nombre">Elegante</span>
+          <small>Minimalista, marco dorado centrado</small>
+        </label>
+        <label class="plantilla-opcion{{ ' activa' if pl == 'moderna' else '' }}" for="pl_moderna">
+          <input type="radio" name="plantilla" id="pl_moderna" value="moderna"
+                 {{ 'checked' if pl == 'moderna' else '' }} />
+          <div class="plantilla-preview moderna-prev">
+            <div class="pp-barra"></div>
+            <div class="pp-acento"></div>
+          </div>
+          <span class="plantilla-nombre">Moderna</span>
+          <small>Barra lateral con datos sobre color</small>
+        </label>
+        <label class="plantilla-opcion{{ ' activa' if pl == 'impacto' else '' }}" for="pl_impacto">
+          <input type="radio" name="plantilla" id="pl_impacto" value="impacto"
+                 {{ 'checked' if pl == 'impacto' else '' }} />
+          <div class="plantilla-preview impacto-prev">
+            <div class="pp-diagonal"></div>
+            <div class="pp-center">
+              <div class="pp-precio-grande"></div>
+            </div>
+          </div>
+          <span class="plantilla-nombre">Impacto</span>
+          <small>Precio grande, acento diagonal</small>
+        </label>
+      </div>
+
+      <div style="margin-top:1.2rem; padding-top:1rem; border-top:1px solid #eee;">
+        <h3 style="font-size:1rem; margin:0 0 0.8rem;">Ajustes de la franja inferior</h3>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label for="franja_opacidad" style="font-size:0.9rem;">
+              Transparencia de la franja: <strong id="franja-op-valor">{{ branding.franja_opacidad|default('75') }}%</strong>
+            </label>
+            <input type="range" name="franja_opacidad" id="franja_opacidad"
+                   min="0" max="100" value="{{ branding.franja_opacidad|default('75') }}"
+                   style="width:100%; margin-top:0.4rem; accent-color:{{ branding.color_secundario }};" />
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#999;">
+              <span>Transparente</span><span>Oscuro</span>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label for="franja_tamano" style="font-size:0.9rem;">
+              Tamaño de la franja: <strong id="franja-tam-valor">{{ branding.franja_tamano|default('25') }}%</strong>
+            </label>
+            <input type="range" name="franja_tamano" id="franja_tamano"
+                   min="15" max="40" value="{{ branding.franja_tamano|default('25') }}"
+                   style="width:100%; margin-top:0.4rem; accent-color:{{ branding.color_secundario }};" />
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#999;">
+              <span>Más pequeña</span><span>Más grande</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Datos de contacto por defecto</h2>
+      <p style="font-size:0.85rem; color:#888; margin-bottom:0.8rem;">
+        Se usarán para pre-rellenar el formulario de cada propiedad.
+      </p>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="nombre_agente">Nombre del agente</label>
+          <input type="text" name="nombre_agente" id="nombre_agente"
+                 value="{{ branding.nombre_agente }}" />
+        </div>
+        <div class="form-group">
+          <label for="telefono_agente">Teléfono / WhatsApp</label>
+          <input type="tel" name="telefono_agente" id="telefono_agente"
+                 value="{{ branding.telefono_agente }}" />
+        </div>
+        <div class="form-group">
+          <label for="email_agente">Correo electrónico</label>
+          <input type="email" name="email_agente" id="email_agente"
+                 value="{{ branding.email_agente }}" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Contenido del sitio público</h2>
+      <p style="font-size:0.85rem; color:#888; margin-bottom:0.8rem;">
+        Este texto se muestra en tu página pública (inicio y servicios). Puedes editarlo cuando quieras.
+      </p>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="eslogan">Eslogan principal</label>
+          <input type="text" name="eslogan" id="eslogan" value="{{ branding.eslogan }}" />
+        </div>
+        <div class="form-group full">
+          <label for="descripcion_agencia">Descripción de la agencia</label>
+          <textarea name="descripcion_agencia" id="descripcion_agencia" rows="4">{{ branding.descripcion_agencia }}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="servicio_1_titulo">Servicio 1 — título</label>
+          <input type="text" name="servicio_1_titulo" id="servicio_1_titulo" value="{{ branding.servicio_1_titulo }}" />
+        </div>
+        <div class="form-group full">
+          <label for="servicio_1_desc">Servicio 1 — descripción</label>
+          <textarea name="servicio_1_desc" id="servicio_1_desc" rows="2">{{ branding.servicio_1_desc }}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="servicio_2_titulo">Servicio 2 — título</label>
+          <input type="text" name="servicio_2_titulo" id="servicio_2_titulo" value="{{ branding.servicio_2_titulo }}" />
+        </div>
+        <div class="form-group full">
+          <label for="servicio_2_desc">Servicio 2 — descripción</label>
+          <textarea name="servicio_2_desc" id="servicio_2_desc" rows="2">{{ branding.servicio_2_desc }}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="servicio_3_titulo">Servicio 3 — título</label>
+          <input type="text" name="servicio_3_titulo" id="servicio_3_titulo" value="{{ branding.servicio_3_titulo }}" />
+        </div>
+        <div class="form-group full">
+          <label for="servicio_3_desc">Servicio 3 — descripción</label>
+          <textarea name="servicio_3_desc" id="servicio_3_desc" rows="2">{{ branding.servicio_3_desc }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:0.6rem;">
+      <button type="submit" class="btn-primary" style="flex:1;">💾 Guardar configuración</button>
+      <a href="/panel" class="btn-secondary" style="display:flex; align-items:center; padding:0 1.5rem;">Volver</a>
+    </div>
+  </form>
+
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>🔒 Cambiar mi contraseña</h2>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:1rem;">
+      Cambia la contraseña con la que inicias sesión. Debes conocer tu contraseña actual.
+    </p>
+
+    {% if pw_ok %}
+    <div class="card" style="border-left:4px solid #27ae60; background:#eafaf1; color:#1e8449;">✅ {{ pw_ok }}</div>
+    {% endif %}
+    {% if pw_error %}
+    <div class="card" style="border-left:4px solid #c0392b; background:#fdecea; color:#c0392b;">⚠ {{ pw_error }}</div>
+    {% endif %}
+
+    <form action="/configuracion/password" method="post" class="form-grid">
+      <div class="form-group full">
+        <label for="password_actual">Contraseña actual</label>
+        <input type="password" name="password_actual" id="password_actual" required />
+      </div>
+      <div class="form-group">
+        <label for="password_nueva">Nueva contraseña</label>
+        <input type="password" name="password_nueva" id="password_nueva" required minlength="6" />
+      </div>
+      <div class="form-group">
+        <label for="password_confirmar">Confirmar nueva contraseña</label>
+        <input type="password" name="password_confirmar" id="password_confirmar" required minlength="6" />
+      </div>
+      <div class="form-group full">
+        <button type="submit" class="btn-primary" style="width:auto; padding:0.7rem 2rem;">Actualizar contraseña</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('logo').addEventListener('change', function () {
+    document.getElementById('logo-name').textContent = this.files[0] ? this.files[0].name : '';
+  });
+  document.getElementById('fondo').addEventListener('change', function () {
+    document.getElementById('fondo-name').textContent = this.files[0] ? this.files[0].name : '';
+  });
+  document.querySelectorAll('.plantilla-opcion input[type="radio"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      document.querySelectorAll('.plantilla-opcion').forEach(function(l) { l.classList.remove('activa'); });
+      r.closest('.plantilla-opcion').classList.add('activa');
+    });
+  });
+  var franjaOp = document.getElementById('franja_opacidad');
+  if (franjaOp) {
+    franjaOp.addEventListener('input', function () {
+      document.getElementById('franja-op-valor').textContent = this.value + '%';
+    });
+  }
+  var franjaTam = document.getElementById('franja_tamano');
+  if (franjaTam) {
+    franjaTam.addEventListener('input', function () {
+      document.getElementById('franja-tam-valor').textContent = this.value + '%';
+    });
+  }
+  var sliderOp = document.getElementById('fondo_opacidad');
+  if (sliderOp) {
+    sliderOp.addEventListener('input', function () {
+      document.getElementById('opacidad-valor').textContent = this.value + '%';
+      var velo = document.querySelector('.parallax-velo');
+      if (velo) velo.style.opacity = 1 - this.value / 100;
+    });
+  }
+</script>
+<script src="/static/animaciones.js"></script>
+</body>
+</html>

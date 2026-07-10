@@ -1,0 +1,32 @@
+{% extends "public/base.html" %}
+{% block titulo %}{{ noticia.titulo }} — {{ branding.nombre_agencia }}{% endblock %}
+
+{% block contenido %}
+<section class="pub-detalle-body" style="padding-top:6.5rem;">
+  <div class="pub-detalle-grid">
+    <div>
+      <div class="pub-noticia-fecha" style="margin-bottom:0.8rem;">{{ noticia.fecha }}</div>
+      <h1 style="color:var(--pub-primario); line-height:1.25; margin-bottom:1.4rem;">{{ noticia.titulo }}</h1>
+
+      {% if noticia.imagen_url and noticia.imagen_es_logo %}
+      <div class="pub-noticia-img pub-noticia-img-logo" style="height:260px; border-radius:14px; margin-bottom:1.6rem;">
+        <img src="{{ noticia.imagen_url }}" alt="{{ noticia.titulo }}" />
+      </div>
+      {% elif noticia.imagen_url %}
+      <img src="{{ noticia.imagen_url }}" alt="{{ noticia.titulo }}" style="width:100%; height:340px; object-fit:cover; border-radius:14px; margin-bottom:1.6rem;" />
+      {% endif %}
+
+      <p style="line-height:1.8; color:#444; white-space:pre-line; font-size:1.05rem;">{{ noticia.contenido or noticia.resumen }}</p>
+    </div>
+
+    <div class="pub-contacto-card">
+      <h3>¿Buscas asesoría inmobiliaria?</h3>
+      <p style="color:#666; font-size:0.9rem;">Nuestro equipo puede ayudarte a comprar, vender o alquilar tu propiedad en Venezuela.</p>
+      {% if branding.telefono_agente %}
+      <a href="https://wa.me/{{ branding.telefono_agente | replace('+','') | replace(' ','') }}" class="pub-btn pub-btn-dorado">💬 Escribir por WhatsApp</a>
+      {% endif %}
+      <a href="/#noticias" class="pub-btn pub-btn-outline" style="color:var(--pub-primario); border-color:var(--pub-primario);">← Volver a Tips y Noticias</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

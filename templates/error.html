@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ups — {{ branding.nombre_agencia if branding else "Mi Propiedad" }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia if branding else "Mi Propiedad" }}</div>
+    <p>Algo salió mal</p>
+  </div>
+</header>
+
+<div class="container">
+  <div class="card" style="text-align:center; border-left:4px solid #e67e22;">
+    <h2 style="border:none; color:#1a3a5c;">No se pudo generar la publicación</h2>
+    <p style="color:#555; margin:1rem 0; line-height:1.6;">
+      {{ mensaje }}
+    </p>
+    <p style="color:#888; font-size:0.9rem; margin-bottom:1.5rem;">
+      Tus datos y fotos no se perdieron. Vuelve al formulario e intenta generar de nuevo.
+    </p>
+    <a href="/panel/crear" class="btn-primary" style="display:inline-block; width:auto; padding:0.8rem 2.5rem; text-decoration:none;">
+      ↩ Volver al formulario
+    </a>
+  </div>
+</div>
+
+<script src="/static/animaciones.js"></script>
+</body>
+</html>

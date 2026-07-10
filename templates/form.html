@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Propiedad — Generador de Publicaciones</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="{{ 'con-fondo' if branding and branding.fondo else '' }}">
+{% if branding and branding.fondo %}
+<div class="parallax-fondo" style="background-image:url('{{ branding.fondo }}')"></div>
+<div class="parallax-velo" style="opacity:{{ ((100 - branding.fondo_opacidad|int) / 100) }}"></div>
+{% endif %}
+
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia if branding else "Mi Propiedad" }}</div>
+    <p>Generador profesional de publicaciones inmobiliarias</p>
+  </div>
+  <div style="display:flex; gap:0.5rem; align-items:center;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">📊 Dashboard</a>
+    <a href="/historial" class="btn-secondary" style="font-size:0.85rem;">🗂 Historial</a>
+    <a href="/configuracion" class="btn-secondary" style="font-size:0.85rem;">⚙ Configuración</a>
+    {% if agente and agente.es_admin %}
+    <a href="/panel/agentes" class="btn-secondary" style="font-size:0.85rem;">👤 Agentes</a>
+    {% endif %}
+    <a href="/" class="btn-secondary" style="font-size:0.85rem;">🌐 Sitio público</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
+</header>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Generando contenido con IA...</p>
+</div>
+
+<div class="container">
+  {% if suscripcion %}
+  <div style="display:flex; align-items:center; gap:0.6rem; padding:0.5rem 1rem; margin-bottom:0.8rem; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); font-size:0.85rem;">
+    {% if suscripcion.plan == 'vitalicio' %}
+      <span style="background:#27ae60; color:#fff; padding:0.2rem 0.6rem; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">Vitalicio</span>
+    {% elif suscripcion.plan == 'anual' %}
+      <span style="background:#8e44ad; color:#fff; padding:0.2rem 0.6rem; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">Anual</span>
+    {% elif suscripcion.plan == 'mensual' %}
+      <span style="background:#2980b9; color:#fff; padding:0.2rem 0.6rem; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">Mensual</span>
+    {% else %}
+      <span style="background:#f39c12; color:#fff; padding:0.2rem 0.6rem; border-radius:6px; font-weight:700; font-size:0.75rem; text-transform:uppercase;">Prueba</span>
+    {% endif %}
+    <span style="color:#666;">{{ suscripcion.mensaje }}</span>
+  </div>
+  {% endif %}
+  <form action="/generar" method="post" enctype="multipart/form-data" id="mainForm">
+
+    <!-- ── Sección 1: Datos básicos ── -->
+    <div class="card">
+      <h2>Datos de la propiedad</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="tipo_propiedad">Tipo de propiedad</label>
+          <select name="tipo_propiedad" id="tipo_propiedad" required>
+            <option value="">Seleccionar...</option>
+            <option value="Casa">Casa</option>
+            <option value="Departamento / Apartamento">Departamento / Apartamento</option>
+            <option value="Terreno">Terreno</option>
+            <option value="Penthouse">Penthouse</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="operacion">Operación</label>
+          <select name="operacion" id="operacion" required>
+            <option value="">Seleccionar...</option>
+            <option value="Venta">Venta</option>
+            <option value="Alquiler">Alquiler</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="pais">País</label>
+          <select name="pais" id="pais" required></select>
+        </div>
+        <div class="form-group">
+          <label for="estado">Estado / Provincia</label>
+          <input type="text" name="estado" id="estado" list="lista-estados"
+                 autocomplete="off" placeholder="Elige o escribe" required />
+          <datalist id="lista-estados"></datalist>
+        </div>
+        <div class="form-group">
+          <label for="municipio">Municipio / Ciudad</label>
+          <input type="text" name="municipio" id="municipio" list="lista-municipios"
+                 autocomplete="off" placeholder="Elige o escribe" required />
+          <datalist id="lista-municipios"></datalist>
+        </div>
+        <div class="form-group">
+          <label for="precio">Precio (USD $)</label>
+          <input type="number" name="precio" id="precio" placeholder="Ej: 85000" min="0" step="500" required />
+        </div>
+        <div class="form-group full">
+          <label for="direccion">Dirección / Sector (calle, urbanización, referencia)</label>
+          <input type="text" name="direccion" id="direccion" placeholder="Ej: Urbanización Alta Vista, Calle Los Robles" required />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Sección 2: Características ── -->
+    <div class="card">
+      <h2>Características</h2>
+      <div class="form-grid three" id="caracteristicas-grid">
+        <div class="form-group" id="grp-habitaciones">
+          <label for="habitaciones">Habitaciones</label>
+          <input type="number" name="habitaciones" id="habitaciones" min="0" placeholder="Ej: 3" />
+        </div>
+        <div class="form-group" id="grp-banos">
+          <label for="banos">Baños</label>
+          <input type="number" name="banos" id="banos" min="0" placeholder="Ej: 2" />
+        </div>
+        <div class="form-group">
+          <label for="estacionamientos">Estacionamientos</label>
+          <input type="number" name="estacionamientos" id="estacionamientos" min="0" placeholder="Ej: 1" />
+        </div>
+        <div class="form-group" id="grp-m2-const">
+          <label for="metros_construidos">m² construidos</label>
+          <input type="number" name="metros_construidos" id="metros_construidos" min="0" step="0.5" placeholder="Ej: 120" />
+        </div>
+        <div class="form-group">
+          <label for="metros_terreno">m² de terreno</label>
+          <input type="number" name="metros_terreno" id="metros_terreno" min="0" step="0.5" placeholder="Ej: 250" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Sección 3: Espacios y amenidades ── -->
+    <div class="card">
+      <h2>Espacios y amenidades</h2>
+      <div class="checkboxes-grid">
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Piscina" /> Piscina
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Jardín" /> Jardín
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Seguridad 24h" /> Seguridad 24h
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Gimnasio" /> Gimnasio
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Ascensor" /> Ascensor
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Área de juegos" /> Área de juegos
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Salón de usos múltiples" /> Salón de usos múltiples
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Área de BBQ" /> Área de BBQ
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Cerca de comercios" /> Cerca de comercios
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Cuarto de servicio" /> Cuarto de servicio
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Maletero / Depósito" /> Maletero / Depósito
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="espacios" value="Terraza" /> Terraza
+        </label>
+      </div>
+    </div>
+
+    <!-- ── Sección 4: Notas del agente ── -->
+    <div class="card">
+      <h2>Notas del agente</h2>
+      <div class="form-group">
+        <label for="descripcion_agente">¿Qué destaca de esta propiedad? (2-3 líneas)</label>
+        <textarea name="descripcion_agente" id="descripcion_agente"
+          placeholder="Ej: Excelente ubicación frente al parque, remodelada recientemente, cocina empotrada. Ideal para familia..."></textarea>
+      </div>
+      <div class="form-grid" style="margin-top:1rem;">
+        <div class="form-group">
+          <label for="tono">Tono del texto</label>
+          <select name="tono" id="tono">
+            <option value="Cercano" selected>Cercano</option>
+            <option value="Formal">Formal</option>
+            <option value="Lujo">Lujo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="longitud">Longitud del texto</label>
+          <select name="longitud" id="longitud">
+            <option value="Corta">Corta</option>
+            <option value="Media" selected>Media</option>
+            <option value="Larga">Larga</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Sección 5: Fotos ── -->
+    <div class="card">
+      <h2>Fotos de la propiedad</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Foto de portada *</label>
+          <label class="file-label" for="foto_portada">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" fill="none"/>
+              <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>Clic para seleccionar</span>
+            <small>JPG, PNG — imagen principal</small>
+          </label>
+          <input type="file" name="foto_portada" id="foto_portada" accept="image/*" required />
+          <div class="file-name" id="portada-name"></div>
+        </div>
+        <div class="form-group">
+          <label>Fotos adicionales (opcional)</label>
+          <label class="file-label" for="fotos_extra">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/>
+              <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <polyline points="21 15 16 10 5 21" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            <span>Clic para seleccionar</span>
+            <small>Puedes elegir varias fotos</small>
+          </label>
+          <input type="file" name="fotos_extra" id="fotos_extra" accept="image/*" multiple />
+          <div class="file-name" id="extras-name"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Sección 6: Datos del agente ── -->
+    <div class="card">
+      <h2>Datos del agente</h2>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="nombre_agente">Nombre completo</label>
+          <input type="text" name="nombre_agente" id="nombre_agente" placeholder="Ej: María González"
+                 value="{{ branding.nombre_agente if branding else '' }}" required />
+        </div>
+        <div class="form-group">
+          <label for="telefono_agente">Teléfono / WhatsApp</label>
+          <input type="tel" name="telefono_agente" id="telefono_agente" placeholder="Ej: +58 412 000 0000"
+                 value="{{ branding.telefono_agente if branding else '' }}" required />
+        </div>
+        <div class="form-group">
+          <label for="email_agente">Correo electrónico</label>
+          <input type="email" name="email_agente" id="email_agente" placeholder="agente@ejemplo.com"
+                 value="{{ branding.email_agente if branding else '' }}" />
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary">✨ Generar publicación con IA</button>
+
+  </form>
+</div>
+
+<script>
+  // Mostrar nombre del archivo seleccionado
+  document.getElementById('foto_portada').addEventListener('change', function() {
+    const el = document.getElementById('portada-name');
+    el.textContent = this.files[0] ? this.files[0].name : '';
+  });
+  document.getElementById('fotos_extra').addEventListener('change', function() {
+    const el = document.getElementById('extras-name');
+    el.textContent = this.files.length > 0 ? `${this.files.length} foto(s) seleccionada(s)` : '';
+  });
+
+  // Ocultar campos según tipo de propiedad
+  document.getElementById('tipo_propiedad').addEventListener('change', function() {
+    const tipo = this.value;
+    const esTerrenoPuro = tipo === 'Terreno';
+    ['grp-habitaciones', 'grp-banos', 'grp-m2-const'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = esTerrenoPuro ? 'none' : '';
+    });
+  });
+
+  // Loading al enviar
+  document.getElementById('mainForm').addEventListener('submit', function() {
+    document.getElementById('loading').classList.add('active');
+  });
+</script>
+
+<script src="/static/ubicaciones.js"></script>
+<script>
+  // Cascada País → Estado → Municipio (formulario inicia limpio)
+  initUbicaciones('pais', 'estado', 'municipio', 'lista-estados', 'lista-municipios', {});
+</script>
+<script src="/static/animaciones.js"></script>
+
+</body>
+</html>

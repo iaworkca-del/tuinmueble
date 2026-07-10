@@ -1,0 +1,154 @@
+{% extends "public/base.html" %}
+{% block titulo %}{{ branding.nombre_agencia }} — {{ branding.eslogan }}{% endblock %}
+
+{% block contenido %}
+<section class="pub-hero">
+  <div class="pub-hero-bg" style="background-image:url('{{ branding.fondo if branding.fondo else '/static/logo.png' }}');"></div>
+  <div class="pub-hero-overlay"></div>
+  <div class="pub-hero-contenido">
+    <h1>{{ branding.eslogan.split(' ')[:-2] | join(' ') }} <span>{{ branding.eslogan.split(' ')[-2:] | join(' ') }}</span></h1>
+    <p>{{ branding.descripcion_agencia[:160] }}{% if branding.descripcion_agencia|length > 160 %}...{% endif %}</p>
+    <div class="pub-hero-ctas">
+      <a href="/catalogo" class="pub-btn pub-btn-dorado">Ver propiedades</a>
+      <a href="/servicios" class="pub-btn pub-btn-outline">Nuestros servicios</a>
+    </div>
+  </div>
+  <div class="pub-scroll-indicator">↓</div>
+</section>
+
+<section class="pub-seccion pub-reveal">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Sobre nosotros</div>
+    <h2>Tu aliado en bienes raíces</h2>
+    <p>{{ branding.descripcion_agencia }}</p>
+  </div>
+</section>
+
+<section class="pub-seccion pub-reveal pub-banner-seccion">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Recién publicadas</div>
+    <h2>Nuestras propiedades</h2>
+    <p>Descubre las últimas propiedades generadas por nuestro equipo, actualizadas automáticamente.</p>
+  </div>
+  {% if propiedades %}
+  <div class="pub-banner-track">
+    {% for p in propiedades %}
+    <a href="/catalogo/{{ p.id }}" class="pub-banner-card">
+      {% if p.portada %}
+      <img src="{{ p.portada }}" class="pub-banner-img" alt="{{ p.tipo_propiedad }}" loading="lazy" />
+      {% else %}
+      <div class="pub-banner-img pub-banner-img-vacio"></div>
+      {% endif %}
+      <div class="pub-banner-overlay"></div>
+      <span class="pub-banner-badge">{{ p.operacion }}</span>
+      <div class="pub-banner-info">
+        <div class="pub-banner-precio">USD ${{ "{:,.0f}".format(p.precio or 0) }}</div>
+        <div class="pub-banner-tipo">{{ p.tipo_propiedad }}</div>
+        <div class="pub-banner-ubic">📍 {{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
+        <span class="pub-banner-cta">Ver más →</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="pub-prop-vacio">Muy pronto publicaremos nuestras propiedades disponibles.</div>
+  {% endif %}
+</section>
+
+<section class="pub-seccion gris pub-reveal">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Lo que hacemos</div>
+    <h2>Nuestros servicios</h2>
+  </div>
+  <div class="pub-servicios-grid">
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">🏠</div>
+      <h3>{{ branding.servicio_1_titulo }}</h3>
+      <p>{{ branding.servicio_1_desc }}</p>
+    </div>
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">🔑</div>
+      <h3>{{ branding.servicio_2_titulo }}</h3>
+      <p>{{ branding.servicio_2_desc }}</p>
+    </div>
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">📊</div>
+      <h3>{{ branding.servicio_3_titulo }}</h3>
+      <p>{{ branding.servicio_3_desc }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion pub-reveal">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Catálogo</div>
+    <h2>Propiedades destacadas</h2>
+  </div>
+  <div class="pub-catalogo-grid">
+    {% for p in propiedades %}
+    <a href="/catalogo/{{ p.id }}" class="pub-prop-card">
+      {% if p.portada %}
+      <img src="{{ p.portada }}" class="pub-prop-img" alt="{{ p.tipo_propiedad }}" />
+      {% else %}
+      <div class="pub-prop-img"></div>
+      {% endif %}
+      <div class="pub-prop-body">
+        <span class="pub-prop-badge">{{ p.operacion }}</span>
+        <div class="pub-prop-precio">USD ${{ "{:,.0f}".format(p.precio or 0) }}</div>
+        <div class="pub-prop-ubic">{{ p.tipo_propiedad }} · {{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
+      </div>
+    </a>
+    {% else %}
+    <div class="pub-prop-vacio">Muy pronto publicaremos nuestras propiedades disponibles.</div>
+    {% endfor %}
+  </div>
+  {% if propiedades %}
+  <div style="text-align:center; margin-top:2.5rem;">
+    <a href="/catalogo" class="pub-btn pub-btn-dorado" style="color:#1a1a1a;">Ver todo el catálogo</a>
+  </div>
+  {% endif %}
+</section>
+
+<section id="noticias" class="pub-seccion gris pub-reveal">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Blog inmobiliario</div>
+    <h2>Tips y Noticias Inmobiliarias</h2>
+    <p>Mercado, precios y tendencias del sector inmobiliario en Venezuela, generado y actualizado automáticamente.</p>
+  </div>
+  {% if noticias %}
+  <div class="pub-noticias-grid">
+    {% for n in noticias %}
+    <a href="/noticias/{{ n.id }}" class="pub-noticia-card">
+      {% if n.imagen_url and n.imagen_es_logo %}
+      <div class="pub-noticia-img pub-noticia-img-logo">
+        <img src="{{ n.imagen_url }}" alt="{{ n.titulo }}" loading="lazy" />
+      </div>
+      {% elif n.imagen_url %}
+      <img src="{{ n.imagen_url }}" class="pub-noticia-img" alt="{{ n.titulo }}" loading="lazy" />
+      {% else %}
+      <div class="pub-noticia-img pub-noticia-img-vacio">🏘️</div>
+      {% endif %}
+      <div class="pub-noticia-body">
+        <div class="pub-noticia-fecha">{{ n.fecha }}</div>
+        <h3 class="pub-noticia-titulo">{{ n.titulo }}</h3>
+        <p class="pub-noticia-resumen">{{ n.resumen }}</p>
+        <span class="pub-noticia-cta">Leer más →</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="pub-prop-vacio">Muy pronto publicaremos tips y noticias del sector inmobiliario venezolano.</div>
+  {% endif %}
+</section>
+
+<section class="pub-cta pub-reveal">
+  <h2>¿Listo para encontrar tu próxima propiedad?</h2>
+  <p>Escríbenos y un asesor te ayudará en todo el proceso.</p>
+  {% if branding.telefono_agente %}
+  <a href="https://wa.me/{{ branding.telefono_agente | replace('+','') | replace(' ','') }}" class="pub-btn pub-btn-dorado">Hablar por WhatsApp</a>
+  {% else %}
+  <a href="/catalogo" class="pub-btn pub-btn-dorado">Ver propiedades</a>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historial — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="{{ 'con-fondo' if branding and branding.fondo else '' }}">
+{% if branding and branding.fondo %}
+<div class="parallax-fondo" style="background-image:url('{{ branding.fondo }}')"></div>
+<div class="parallax-velo" style="opacity:{{ ((100 - branding.fondo_opacidad|int) / 100) }}"></div>
+{% endif %}
+
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia }}</div>
+    <p>Historial de propiedades</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">📊 Dashboard</a>
+    <a href="/panel/crear" class="btn-secondary" style="font-size:0.85rem;">＋ Nueva propiedad</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Buscador -->
+  <div class="card">
+    <form action="/historial" method="get" style="display:flex; gap:0.6rem;">
+      <input type="text" name="busqueda" value="{{ busqueda }}"
+             placeholder="Buscar por dirección, ciudad, tipo, operación o agente..."
+             style="flex:1;" />
+      <button type="submit" class="btn-primary" style="width:auto; padding:0.6rem 1.5rem;">🔍 Buscar</button>
+      {% if busqueda %}
+      <a href="/historial" class="btn-secondary" style="display:flex; align-items:center; padding:0 1.2rem;">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if propiedades %}
+  <div class="historial-grid">
+    {% for p in propiedades %}
+    <div class="historial-card" style="position:relative;">
+      <a href="/historial/{{ p.id }}" style="display:block; color:inherit; text-decoration:none;">
+      {% if p.portada %}
+      <img src="{{ p.portada }}" alt="Portada" class="historial-img" />
+      {% else %}
+      <div class="historial-img historial-img-vacia">Sin imagen</div>
+      {% endif %}
+      <div class="historial-info">
+        <div class="historial-titulo">
+          {{ p.tipo_propiedad }}
+          <span class="badge {{ p.operacion | lower }}">{{ p.operacion }}</span>
+        </div>
+        <div class="historial-precio">USD ${{ "{:,.0f}".format(p.precio or 0) }}</div>
+        <div class="historial-ubic">{{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
+        <div class="historial-meta">{{ p.nombre_agente }} · {{ p.creado_en[:10] }}</div>
+      </div>
+      </a>
+      <div style="padding:0 1.2rem 1rem; display:flex; gap:0.4rem;">
+        <form action="/historial/{{ p.id }}/publicar" method="post" style="flex:1;">
+          <input type="hidden" name="publicado" value="{{ 0 if p.publicado else 1 }}" />
+          <button type="submit" class="btn-secondary" style="width:100%; font-size:0.8rem; {{ 'background:#27ae60; color:#fff;' if p.publicado else '' }}">
+            {% if p.publicado %}✅ Visible en Catálogo Público{% else %}Publicar en Catálogo Público{% endif %}
+          </button>
+        </form>
+        {% if agente and (agente.es_admin or agente.es_principal or agente.id == p.agente_id) %}
+        <form action="/historial/{{ p.id }}/eliminar" method="post"
+              onsubmit="return confirm('¿Eliminar esta propiedad? Esta acción no se puede deshacer.');">
+          <button type="submit" class="btn-secondary" style="font-size:0.9rem; padding:0.5rem 0.8rem; background:#e74c3c; color:#fff;" title="Eliminar propiedad">
+            🗑
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="text-align:center; color:#888;">
+    {% if busqueda %}
+    No se encontraron propiedades para "<strong>{{ busqueda }}</strong>".
+    {% else %}
+    Aún no has generado propiedades. <a href="/panel/crear">Crea la primera</a>.
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+<script src="/static/animaciones.js"></script>
+</body>
+</html>

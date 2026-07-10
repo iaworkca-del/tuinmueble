@@ -1,0 +1,48 @@
+modules = ["python-3.11"]
+[nix]
+channel = "stable-25_05"
+packages = ["cargo", "freetype", "glibcLocales", "lcms2", "libiconv", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "rustc", "tcl", "tk", "zlib"]
+
+[agent]
+expertMode = true
+integrations = ["python_gemini_ai_integrations:1.0.0"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m uvicorn main:app --host 0.0.0.0 --port 5000 --reload"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[userenv]
+
+[userenv.shared]
+SESSION_SECRET_KEY = "e5d40795550c632bc83f1e28d138ebaec4e66faca94741c0b021db2919bfdfe6"
+
+[deployment]
+deploymentTarget = "cloudrun"

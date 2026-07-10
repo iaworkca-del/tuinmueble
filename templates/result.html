@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resultado — Mi Propiedad</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="{{ 'con-fondo' if branding and branding.fondo else '' }}">
+{% if branding and branding.fondo %}
+<div class="parallax-fondo" style="background-image:url('{{ branding.fondo }}')"></div>
+<div class="parallax-velo" style="opacity:{{ ((100 - branding.fondo_opacidad|int) / 100) }}"></div>
+{% endif %}
+
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia if branding else "Mi Propiedad" }}</div>
+    <p>Publicación generada con IA</p>
+  </div>
+  <a href="/historial" class="btn-secondary" style="font-size:0.85rem;">🗂 Historial</a>
+</header>
+
+<div class="container">
+
+  <!-- ── Encabezado de resultado ── -->
+  <div class="card">
+    <div class="result-header">
+      <div>
+        <h2 style="border:none; margin:0; padding:0; font-size:1.3rem;">
+          {{ datos.tipo_propiedad }} en
+          <span class="badge {{ datos.operacion | lower }}">{{ datos.operacion }}</span>
+        </h2>
+        <p style="margin-top:0.4rem; color:#666; font-size:0.92rem;">
+          {{ datos.direccion }}, {{ datos.ciudad_estado }} &nbsp;|&nbsp;
+          <strong style="color:#1a3a5c;">USD ${{ "{:,.0f}".format(datos.precio) }}</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Galería: vista previa principal + miniaturas ── -->
+  {% if portada_compuesta_url %}
+  <div class="card">
+    <img id="mainPreview" src="{{ portada_compuesta_url }}" alt="Vista previa"
+         style="display:block; width:100%; height:auto; object-fit:contain; border-radius:8px; margin-bottom:0.8rem;" />
+    <p style="font-size:0.82rem; color:#888; margin:0 0 0.5rem;">
+      ✓ Marca las imágenes que quieres incluir en el carrusel de Instagram.
+    </p>
+    <div class="thumbs-grid">
+      <div class="thumb-wrap">
+        <img class="thumb activa" src="{{ portada_compuesta_url }}"
+             data-full="{{ portada_compuesta_url }}" data-download="{{ portada_descarga_url }}"
+             alt="Cuadrada" />
+        <span class="thumb-label">Cuadrada</span>
+        <input type="checkbox" class="ig-check" title="Incluir en Instagram"
+               value="{{ portada_compuesta_url.split('/')[-1] }}" checked />
+        <span class="ig-tick">✓</span>
+      </div>
+      {% if stories_url %}
+      <div class="thumb-wrap">
+        <img class="thumb" src="{{ stories_url }}"
+             data-full="{{ stories_url }}" data-download="{{ stories_descarga_url }}"
+             alt="Stories" />
+        <span class="thumb-label">Stories</span>
+      </div>
+      {% endif %}
+      {% if collage_url %}
+      <div class="thumb-wrap">
+        <img class="thumb" src="{{ collage_url }}"
+             data-full="{{ collage_url }}" data-download="{{ collage_descarga_url }}"
+             alt="Collage" />
+        <span class="thumb-label">Collage</span>
+        <input type="checkbox" class="ig-check" title="Incluir en Instagram"
+               value="{{ collage_url.split('/')[-1] }}" />
+        <span class="ig-tick">✓</span>
+      </div>
+      {% endif %}
+      {% for ex in extras_overlay %}
+      <div class="thumb-wrap">
+        <img class="thumb" src="{{ ex.url }}"
+             data-full="{{ ex.url }}" data-download="{{ ex.descarga }}"
+             alt="Foto {{ loop.index }}" />
+        <span class="thumb-label">Foto {{ loop.index }}</span>
+        <input type="checkbox" class="ig-check" title="Incluir en Instagram"
+               value="{{ ex.url.split('/')[-1] }}" />
+        <span class="ig-tick">✓</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% elif portada_url %}
+  <div class="card">
+    <img src="{{ portada_url }}" alt="Foto portada" class="property-photo" />
+  </div>
+  {% endif %}
+
+  <!-- ── Barra de acciones (debajo de la galería) ── -->
+  <div class="card acciones-card">
+    <div class="acciones-grid">
+      {% if pdf_descarga_url %}
+      <a href="{{ pdf_descarga_url }}" class="accion accion-azul">
+        <span class="accion-ico">📄</span> Descargar PDF
+      </a>
+      {% endif %}
+      {% if portada_descarga_url %}
+      <a id="downloadBtn" href="{{ portada_descarga_url }}" class="accion accion-dorado">
+        <span class="accion-ico">⬇</span> Descargar Imagen
+      </a>
+      {% endif %}
+      {% if portada_compuesta_url %}
+      <button id="btnInstagram" class="accion accion-instagram"
+              data-imagen="{{ portada_compuesta_url.split('/')[-1] }}">
+        <span class="accion-ico">📸</span> Publicar en Instagram
+        <span class="accion-badge" style="background:#fff; color:#c13584;">Suscripción</span>
+      </button>
+      {% endif %}
+      <button class="accion accion-tiktok" disabled>
+        <span class="accion-ico">🎵</span> Publicar TikTok
+        <span class="accion-badge" style="background:#fff; color:#010101;">Suscripción</span>
+      </button>
+      <button class="accion accion-facebook" disabled>
+        <span class="accion-ico">📘</span> Publicar Facebook
+        <span class="accion-badge" style="background:#fff; color:#1877F2;">Suscripción</span>
+      </button>
+      <button class="accion accion-video" disabled>
+        <span class="accion-ico">🎬</span> Generar Video Reel
+        <span class="accion-badge" style="background:#fff; color:#6a5acd;">Suscripción</span>
+      </button>
+      <a href="/panel/crear" class="accion accion-outline">
+        <span class="accion-ico">＋</span> Nueva propiedad
+      </a>
+    </div>
+    <div id="igStatus" style="margin-top:0.8rem; font-size:0.9rem; text-align:center;"></div>
+  </div>
+
+  <!-- ── Descripción profesional ── -->
+  <div class="card">
+    <h2>Descripción profesional</h2>
+    <p style="font-size:0.8rem; color:#888; margin-bottom:0.5rem;">
+      Para portales inmobiliarios, WhatsApp y correos
+    </p>
+    <div class="content-box-header">
+      <span class="content-box-title">Texto generado</span>
+      <button class="btn-copy" onclick="copiar('desc-text', this)">📋 Copiar</button>
+    </div>
+    <div class="content-box" id="desc-text">{{ descripcion }}</div>
+  </div>
+
+  <!-- ── Copy de Instagram ── -->
+  <div class="card">
+    <h2>Copy para Instagram</h2>
+    <p style="font-size:0.8rem; color:#888; margin-bottom:0.5rem;">
+      Listo para pegar en tu publicación de Instagram
+    </p>
+    <div class="content-box-header">
+      <span class="content-box-title">Copy + hashtags</span>
+      <button class="btn-copy" onclick="copiar('ig-text', this)">📋 Copiar</button>
+    </div>
+    <div class="content-box" id="ig-text">{{ instagram }}</div>
+  </div>
+
+  <!-- ── Copy de WhatsApp ── -->
+  {% if whatsapp %}
+  <div class="card">
+    <h2>Mensaje para WhatsApp</h2>
+    <p style="font-size:0.8rem; color:#888; margin-bottom:0.5rem;">
+      Listo para enviar o reenviar a tus clientes
+    </p>
+    <div class="content-box-header">
+      <span class="content-box-title">Mensaje</span>
+      <div style="display:flex; gap:0.5rem;">
+        <button id="waShare" class="btn-copy"
+                style="border-color:#25D366; color:#25D366;">📲 Compartir</button>
+        <button class="btn-copy" onclick="copiar('wa-text', this)">📋 Copiar</button>
+      </div>
+    </div>
+    <div class="content-box" id="wa-text">{{ whatsapp }}</div>
+  </div>
+  {% endif %}
+
+  <!-- ── Copy de Facebook Marketplace ── -->
+  {% if facebook %}
+  <div class="card">
+    <h2>Publicación para Facebook Marketplace</h2>
+    <p style="font-size:0.8rem; color:#888; margin-bottom:0.5rem;">
+      Título + cuerpo orientado a venta directa
+    </p>
+    <div class="content-box-header">
+      <span class="content-box-title">Título + cuerpo</span>
+      <button class="btn-copy" onclick="copiar('fb-text', this)">📋 Copiar</button>
+    </div>
+    <div class="content-box" id="fb-text">{{ facebook }}</div>
+  </div>
+  {% endif %}
+
+  <!-- ── Resumen de datos ── -->
+  <div class="card">
+    <h2>Resumen de la propiedad</h2>
+    <div class="form-grid">
+      {% if datos.habitaciones %}
+      <div><strong>Habitaciones:</strong> {{ datos.habitaciones }}</div>
+      {% endif %}
+      {% if datos.banos %}
+      <div><strong>Baños:</strong> {{ datos.banos }}</div>
+      {% endif %}
+      {% if datos.metros_construidos %}
+      <div><strong>m² construidos:</strong> {{ datos.metros_construidos }}</div>
+      {% endif %}
+      {% if datos.metros_terreno %}
+      <div><strong>m² terreno:</strong> {{ datos.metros_terreno }}</div>
+      {% endif %}
+      {% if datos.estacionamientos %}
+      <div><strong>Estacionamientos:</strong> {{ datos.estacionamientos }}</div>
+      {% endif %}
+      {% if datos.espacios %}
+      <div style="grid-column: 1 / -1"><strong>Amenidades:</strong> {{ datos.espacios | join(', ') }}</div>
+      {% endif %}
+      <div style="grid-column: 1 / -1"><strong>Agente:</strong> {{ datos.nombre_agente }} | {{ datos.telefono_agente }}{% if datos.email_agente %} | {{ datos.email_agente }}{% endif %}</div>
+    </div>
+  </div>
+
+
+</div>
+
+<script>
+  function copiar(elementId, btn) {
+    const texto = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(texto).then(() => {
+      const original = btn.innerHTML;
+      btn.innerHTML = '✅ Copiado';
+      btn.classList.add('copiado');
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.classList.remove('copiado');
+      }, 2500);
+    }).catch(() => {
+      // Fallback para navegadores sin clipboard API
+      const ta = document.createElement('textarea');
+      ta.value = texto;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.innerHTML = '✅ Copiado';
+      btn.classList.add('copiado');
+      setTimeout(() => {
+        btn.innerHTML = '📋 Copiar';
+        btn.classList.remove('copiado');
+      }, 2500);
+    });
+  }
+
+  // Publicar en Instagram
+  (function () {
+    const btn = document.getElementById('btnInstagram');
+    if (!btn) return;
+    const status = document.getElementById('igStatus');
+    btn.addEventListener('click', function () {
+      const seleccionadas = Array.from(document.querySelectorAll('.ig-check:checked'))
+        .map(function (c) { return c.value; });
+      if (seleccionadas.length === 0) {
+        status.style.color = '#c0392b';
+        status.textContent = '❌ Marca al menos una imagen para publicar.';
+        return;
+      }
+      const titulo = document.getElementById('ig-text').innerText;
+      btn.disabled = true;
+      const textoOriginal = btn.innerHTML;
+      btn.innerHTML = '⏳ Publicando...';
+      status.textContent = '';
+      status.style.color = '';
+
+      const form = new FormData();
+      seleccionadas.forEach(function (nombre) { form.append('imagenes', nombre); });
+      form.append('titulo', titulo);
+
+      fetch('/publicar-instagram', { method: 'POST', body: form })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (res.j.success) {
+            status.style.color = '#27ae60';
+            status.textContent = '✅ ' + res.j.message;
+            if (res.j.url) {
+              status.innerHTML += ' <a href="' + res.j.url + '" target="_blank">Ver post</a>';
+            }
+            btn.innerHTML = '✅ Publicado';
+          } else {
+            status.style.color = '#c0392b';
+            status.textContent = '❌ ' + (res.j.message || 'No se pudo publicar.');
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+          }
+        })
+        .catch(function () {
+          status.style.color = '#c0392b';
+          status.textContent = '❌ Error de red al publicar.';
+          btn.disabled = false;
+          btn.innerHTML = textoOriginal;
+        });
+    });
+  })();
+
+  // WhatsApp: compartir imágenes seleccionadas + mensaje en un solo envío
+  (function () {
+    const wa = document.getElementById('waShare');
+    const txt = document.getElementById('wa-text');
+    if (!wa || !txt) return;
+
+    function imagenesSeleccionadas() {
+      let nombres = Array.from(document.querySelectorAll('.ig-check:checked')).map(function (c) { return c.value; });
+      if (nombres.length === 0) {
+        const primera = document.querySelector('.ig-check');
+        if (primera) nombres = [primera.value];
+      }
+      return nombres;
+    }
+
+    wa.addEventListener('click', async function () {
+      const texto = txt.innerText;
+      const nombres = imagenesSeleccionadas();
+      const original = wa.innerHTML;
+      wa.innerHTML = '⏳ Preparando...';
+      wa.disabled = true;
+
+      try {
+        const archivos = [];
+        for (const n of nombres) {
+          const resp = await fetch('/static/uploads/' + n);
+          const blob = await resp.blob();
+          archivos.push(new File([blob], n, { type: blob.type || 'image/jpeg' }));
+        }
+
+        if (archivos.length && navigator.canShare) {
+          const shareData = { files: archivos, text: texto };
+          if (navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            wa.innerHTML = original;
+            wa.disabled = false;
+            return;
+          }
+          // Si no soporta files+text juntos, intentar solo files
+          const soloArchivos = { files: archivos };
+          if (navigator.canShare(soloArchivos)) {
+            await navigator.share(soloArchivos);
+            // Copiar texto al portapapeles para que lo pegue manualmente
+            try { await navigator.clipboard.writeText(texto); } catch(e) {}
+            wa.innerHTML = '📋 Texto copiado, pégalo en WhatsApp';
+            wa.disabled = false;
+            setTimeout(function() { wa.innerHTML = original; }, 4000);
+            return;
+          }
+        }
+      } catch (e) {
+        if (e.name === 'AbortError') {
+          wa.innerHTML = original;
+          wa.disabled = false;
+          return;
+        }
+      }
+
+      // Fallback: abrir WhatsApp solo con texto
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+      wa.innerHTML = original;
+      wa.disabled = false;
+    });
+  })();
+
+  // Galería: cambiar la vista previa al hacer clic en una miniatura
+  (function () {
+    const main = document.getElementById('mainPreview');
+    const download = document.getElementById('downloadBtn');
+    const thumbs = document.querySelectorAll('.thumb');
+    thumbs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        main.src = t.dataset.full;
+        download.href = t.dataset.download;
+        thumbs.forEach(function (x) { x.classList.remove('activa'); });
+        t.classList.add('activa');
+      });
+    });
+  })();
+</script>
+<script src="/static/animaciones.js"></script>
+
+</body>
+</html>

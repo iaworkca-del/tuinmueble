@@ -1,0 +1,215 @@
+import json
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True)
+BRANDING_FILE = DATA_DIR / "branding.json"
+LOGO_PATH = BASE_DIR / "static" / "logo.png"
+FONDO_PATH = BASE_DIR / "static" / "fondo.jpg"
+
+LOGOS_DIR = BASE_DIR / "static" / "logos"
+FONDOS_DIR = BASE_DIR / "static" / "fondos"
+LOGOS_DIR.mkdir(exist_ok=True)
+FONDOS_DIR.mkdir(exist_ok=True)
+
+DEFAULTS = {
+    "nombre_agencia": "Mi Propiedad",
+    "color_primario": "#1a3a5c",
+    "color_secundario": "#b1b65d",
+    "nombre_agente": "",
+    "telefono_agente": "",
+    "email_agente": "",
+    "fondo_opacidad": "30",
+    "plantilla": "clasica",
+    "franja_opacidad": "50",
+    "franja_tamano": "20",
+    "eslogan": "Encuentra el hogar de tus sueños",
+    "descripcion_agencia": (
+        "Somos una agencia inmobiliaria comprometida con ayudarte a encontrar "
+        "la propiedad ideal. Con años de experiencia en el mercado, ofrecemos "
+        "un servicio personalizado, transparente y cercano en cada paso del "
+        "proceso de compra, venta o alquiler."
+    ),
+    "servicio_1_titulo": "Venta de propiedades",
+    "servicio_1_desc": "Te acompañamos en todo el proceso de venta, desde la valoración hasta el cierre del negocio.",
+    "servicio_2_titulo": "Alquiler de inmuebles",
+    "servicio_2_desc": "Encontramos el inquilino o la propiedad ideal para ti, con contratos claros y seguros.",
+    "servicio_3_titulo": "Asesoría inmobiliaria",
+    "servicio_3_desc": "Te asesoramos con información del mercado para que tomes la mejor decisión de inversión.",
+}
+
+
+def _branding_file(agente: dict = None) -> Path:
+    if agente:
+        agente_file = DATA_DIR / f"branding_agente_{agente['id']}.json"
+        if agente_file.exists():
+            return agente_file
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            cuenta_file = DATA_DIR / f"branding_cuenta_{cuenta_id}.json"
+            if cuenta_file.exists():
+                return cuenta_file
+    return BRANDING_FILE
+
+
+def _branding_file_para_guardar(agente: dict = None, nivel: str = "cuenta") -> Path:
+    if not agente:
+        return BRANDING_FILE
+    if nivel == "agente":
+        return DATA_DIR / f"branding_agente_{agente['id']}.json"
+    cuenta_id = agente.get("cuenta_id")
+    if cuenta_id:
+        return DATA_DIR / f"branding_cuenta_{cuenta_id}.json"
+    return BRANDING_FILE
+
+
+def _cargar_guardado(agente: dict = None) -> dict:
+    data = dict(DEFAULTS)
+    if BRANDING_FILE.exists():
+        try:
+            guardado = json.loads(BRANDING_FILE.read_text(encoding="utf-8"))
+            for clave in DEFAULTS:
+                if clave in guardado:
+                    data[clave] = guardado[clave]
+        except Exception:
+            pass
+    if agente:
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            cuenta_file = DATA_DIR / f"branding_cuenta_{cuenta_id}.json"
+            if cuenta_file.exists():
+                try:
+                    guardado = json.loads(cuenta_file.read_text(encoding="utf-8"))
+                    for clave in DEFAULTS:
+                        if clave in guardado:
+                            data[clave] = guardado[clave]
+                except Exception:
+                    pass
+        agente_file = DATA_DIR / f"branding_agente_{agente['id']}.json"
+        if agente_file.exists():
+            try:
+                guardado = json.loads(agente_file.read_text(encoding="utf-8"))
+                for clave in DEFAULTS:
+                    if clave in guardado:
+                        data[clave] = guardado[clave]
+            except Exception:
+                pass
+    return data
+
+
+def _logo_path(agente: dict = None) -> Path:
+    if agente:
+        p = LOGOS_DIR / f"agente_{agente['id']}.png"
+        if p.exists():
+            return p
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            p = LOGOS_DIR / f"cuenta_{cuenta_id}.png"
+            if p.exists():
+                return p
+    return LOGO_PATH
+
+
+def _fondo_path(agente: dict = None) -> Path:
+    if agente:
+        p = FONDOS_DIR / f"agente_{agente['id']}.jpg"
+        if p.exists():
+            return p
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            p = FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
+            if p.exists():
+                return p
+    return FONDO_PATH
+
+
+def fondo_url(agente: dict = None) -> str:
+    fp = _fondo_path(agente)
+    if fp.exists():
+        try:
+            rel = fp.relative_to(BASE_DIR)
+            return f"/{str(rel).replace(chr(92), '/')}?v={int(fp.stat().st_mtime)}"
+        except Exception:
+            return ""
+    return ""
+
+
+def get_branding(agente: dict = None) -> dict:
+    data = _cargar_guardado(agente)
+    data["fondo"] = fondo_url(agente)
+    return data
+
+
+def guardar_branding(nuevos: dict, agente: dict = None, nivel: str = "cuenta") -> dict:
+    target = _branding_file_para_guardar(agente, nivel)
+    if target.exists():
+        try:
+            data = json.loads(target.read_text(encoding="utf-8"))
+        except Exception:
+            data = {}
+    else:
+        data = {}
+    for clave in DEFAULTS:
+        valor = nuevos.get(clave)
+        if valor is not None and str(valor).strip() != "":
+            data[clave] = valor
+    target.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    return data
+
+
+def hex_to_rgb(h: str) -> tuple:
+    h = (h or "").lstrip("#")
+    if len(h) != 6:
+        return (26, 58, 92)
+    try:
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return (26, 58, 92)
+
+
+def logo_existe(agente: dict = None) -> bool:
+    return _logo_path(agente).exists()
+
+
+def logo_url(agente: dict = None) -> str:
+    lp = _logo_path(agente)
+    if lp.exists():
+        try:
+            rel = lp.relative_to(BASE_DIR)
+            return f"/{str(rel).replace(chr(92), '/')}?v={int(lp.stat().st_mtime)}"
+        except Exception:
+            return ""
+    return ""
+
+
+def logo_path_absoluto(agente: dict = None) -> Path:
+    return _logo_path(agente)
+
+
+def logo_path_para_guardar(agente: dict = None, nivel: str = "cuenta") -> Path:
+    if not agente:
+        return LOGO_PATH
+    if nivel == "agente":
+        return LOGOS_DIR / f"agente_{agente['id']}.png"
+    cuenta_id = agente.get("cuenta_id")
+    if cuenta_id:
+        return LOGOS_DIR / f"cuenta_{cuenta_id}.png"
+    return LOGO_PATH
+
+
+def fondo_path_para_guardar(agente: dict = None, nivel: str = "cuenta") -> Path:
+    if not agente:
+        return FONDO_PATH
+    if nivel == "agente":
+        return FONDOS_DIR / f"agente_{agente['id']}.jpg"
+    cuenta_id = agente.get("cuenta_id")
+    if cuenta_id:
+        return FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
+    return FONDO_PATH
+
+
+def fondo_existe(agente: dict = None) -> bool:
+    return _fondo_path(agente).exists()

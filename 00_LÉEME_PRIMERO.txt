@@ -1,0 +1,109 @@
+================================================================================
+MIGRACIÓN MULTI-AGENTE - MiAgenteInmobiliario
+================================================================================
+
+ARCHIVOS QUE NECESITAS:
+1. ejecutar_migracion.py          ← Descarga ESTO PRIMERO
+2. 02_MIGRACION_SCRIPT.sql        ← Descarga ESTO
+3. 03_main_FASE2.py               ← Descarga ESTO
+4. 04_db_MULTI_AGENTE.py          ← Descarga ESTO
+5. 05_PASO_A_PASO_MIGRACION.md    ← LÉELO todo
+
+================================================================================
+GUÍA RÁPIDA (5 MINUTOS)
+================================================================================
+
+PASO 1: Coloca los 4 archivos en tu carpeta del proyecto
+   C:\Users\nelly\Desktop\IAWORKING\MiAgenteInmobiliario_VRP1.0\MiAgente\
+   
+   Deben estar en la misma carpeta que:
+   ├── main.py
+   ├── db.py
+   ├── data/
+   │   └── propiedades.db
+
+PASO 2: Abre PowerShell en esa carpeta
+   cd C:\Users\nelly\Desktop\IAWORKING\MiAgenteInmobiliario_VRP1.0\MiAgente
+
+PASO 3: Haz BACKUP
+   Copy-Item "data\propiedades.db" -Destination "data\propiedades.db.BACKUP"
+
+PASO 4: Ejecuta la migración (30 SEGUNDOS)
+   python ejecutar_migracion.py
+   
+   Deberías ver:
+   ✅ Conexión exitosa a la base de datos
+   ✅ Ejecutando queries SQL...
+   ✅ MIGRACIÓN COMPLETADA EXITOSAMENTE
+   ✅ Verificación (tabla agentes, propiedades, etc.)
+
+PASO 5: Git commit
+   git add data/propiedades.db
+   git commit -m "FASE 1: Migración BD - tabla agentes"
+   git push origin main
+
+PASO 6: Reemplazar archivos Python
+   Rename-Item "db.py" -NewName "db_BACKUP.py"
+   Rename-Item "main.py" -NewName "main_BACKUP.py"
+   Copy-Item "03_main_FASE2.py" -Destination "main.py"
+   Copy-Item "04_db_MULTI_AGENTE.py" -Destination "db.py"
+
+PASO 7: Probar en LOCAL
+   python main.py
+   
+   Abre en navegador:
+   http://localhost:8000/generar
+   http://localhost:8000/francisco-a-barreto/generar
+   
+   Ambas deben funcionar
+
+PASO 8: Push a Railway
+   git add main.py db.py
+   git commit -m "FASE 2: Rutas multi-agente"
+   git push origin main
+   
+   (Espera 5 minutos a que Railway redeploy)
+
+PASO 9: Verificar en Railway
+   https://tuinmueble-production-xxx.up.railway.app/generar
+   https://tuinmueble-production-xxx.up.railway.app/francisco-a-barreto/generar
+
+================================================================================
+SI ALGO FALLA
+================================================================================
+
+"No encontré la BD"
+   → Verifica que estás en: C:\Users\nelly\Desktop\IAWORKING\MiAgenteInmobiliario_VRP1.0\MiAgente\
+   → Verifica que existe: data\propiedades.db
+
+"No encontré 02_MIGRACION_SCRIPT.sql"
+   → Descárgalo de /outputs
+   → Colócalo en la misma carpeta que ejecutar_migracion.py
+
+"ERROR EN LA BASE DE DATOS"
+   → Haz rollback: Copia data/propiedades.db.BACKUP sobre data/propiedades.db
+   → Contacta con logs
+
+================================================================================
+PARA MÁS DETALLES
+================================================================================
+
+Lee: 05_PASO_A_PASO_MIGRACION.md
+
+Ahí encontrarás:
+- Explicación completa de cada fase
+- Troubleshooting detallado
+- Cómo agregar nuevos agentes
+- Panel admin (opcional)
+
+================================================================================
+
+¿LISTO? 
+
+1. Descarga los 4 archivos
+2. Colócalos en tu carpeta
+3. Abre PowerShell
+4. Ejecuta: python ejecutar_migracion.py
+5. Listo! 🎉
+
+================================================================================
