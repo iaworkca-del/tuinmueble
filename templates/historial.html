@@ -59,12 +59,22 @@
         <div class="historial-meta">{{ p.nombre_agente }} · {{ p.creado_en[:10] }}</div>
       </div>
       </a>
-      <form action="/historial/{{ p.id }}/publicar" method="post" style="padding:0 1.2rem 1rem;">
-        <input type="hidden" name="publicado" value="{{ 0 if p.publicado else 1 }}" />
-        <button type="submit" class="btn-secondary" style="width:100%; font-size:0.8rem; {{ 'background:#27ae60; color:#fff;' if p.publicado else '' }}">
-          {% if p.publicado %}✅ Visible en catálogo público{% else %}Publicar en catálogo público{% endif %}
-        </button>
-      </form>
+      <div style="padding:0 1.2rem 1rem; display:flex; gap:0.4rem;">
+        <form action="/historial/{{ p.id }}/publicar" method="post" style="flex:1;">
+          <input type="hidden" name="publicado" value="{{ 0 if p.publicado else 1 }}" />
+          <button type="submit" class="btn-secondary" style="width:100%; font-size:0.8rem; {{ 'background:#27ae60; color:#fff;' if p.publicado else '' }}">
+            {% if p.publicado %}✅ Visible en Catálogo Público{% else %}Publicar en Catálogo Público{% endif %}
+          </button>
+        </form>
+        {% if agente and (agente.es_admin or agente.es_principal or agente.id == p.agente_id) %}
+        <form action="/historial/{{ p.id }}/eliminar" method="post"
+              onsubmit="return confirm('¿Eliminar esta propiedad? Esta acción no se puede deshacer.');">
+          <button type="submit" class="btn-secondary" style="font-size:0.9rem; padding:0.5rem 0.8rem; background:#e74c3c; color:#fff;" title="Eliminar propiedad">
+            🗑
+          </button>
+        </form>
+        {% endif %}
+      </div>
     </div>
     {% endfor %}
   </div>

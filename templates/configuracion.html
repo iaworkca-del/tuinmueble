@@ -63,7 +63,7 @@
           {% if logo_existe %}
           <div style="margin-top:0.6rem;">
             <span style="font-size:0.85rem; color:#666;">Logo actual:</span><br/>
-            <img src="/static/logo.png?v={{ cache_bust }}" alt="Logo actual"
+            <img src="{{ logo_url }}?v={{ cache_bust }}" alt="Logo actual"
                  style="max-height:70px; margin-top:0.4rem; background:#1a3a5c; padding:8px; border-radius:6px;" />
           </div>
           {% endif %}
@@ -263,6 +263,38 @@
       <a href="/panel" class="btn-secondary" style="display:flex; align-items:center; padding:0 1.5rem;">Volver</a>
     </div>
   </form>
+
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>🔒 Cambiar mi contraseña</h2>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:1rem;">
+      Cambia la contraseña con la que inicias sesión. Debes conocer tu contraseña actual.
+    </p>
+
+    {% if pw_ok %}
+    <div class="card" style="border-left:4px solid #27ae60; background:#eafaf1; color:#1e8449;">✅ {{ pw_ok }}</div>
+    {% endif %}
+    {% if pw_error %}
+    <div class="card" style="border-left:4px solid #c0392b; background:#fdecea; color:#c0392b;">⚠ {{ pw_error }}</div>
+    {% endif %}
+
+    <form action="/configuracion/password" method="post" class="form-grid">
+      <div class="form-group full">
+        <label for="password_actual">Contraseña actual</label>
+        <input type="password" name="password_actual" id="password_actual" required />
+      </div>
+      <div class="form-group">
+        <label for="password_nueva">Nueva contraseña</label>
+        <input type="password" name="password_nueva" id="password_nueva" required minlength="6" />
+      </div>
+      <div class="form-group">
+        <label for="password_confirmar">Confirmar nueva contraseña</label>
+        <input type="password" name="password_confirmar" id="password_confirmar" required minlength="6" />
+      </div>
+      <div class="form-group full">
+        <button type="submit" class="btn-primary" style="width:auto; padding:0.7rem 2rem;">Actualizar contraseña</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>

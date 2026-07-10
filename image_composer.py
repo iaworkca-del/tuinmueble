@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-from branding import get_branding, hex_to_rgb
+from branding import get_branding, hex_to_rgb, logo_path_absoluto
 
 BASE_DIR = Path(__file__).parent
 UPLOAD_DIR = BASE_DIR / "static" / "uploads"
@@ -112,9 +112,10 @@ def _componer_clasica(img, datos, branding, dorado):
     overlay.paste(franja_bot, (0, H - FRANJA_H))
     img = Image.alpha_composite(img, overlay)
     draw = ImageDraw.Draw(img)
-    if LOGO_PATH.exists():
+    lp = branding.get("_logo_path") or LOGO_PATH
+    if Path(lp).exists():
         try:
-            logo = Image.open(LOGO_PATH).convert("RGBA")
+            logo = Image.open(str(lp)).convert("RGBA")
             logo.thumbnail((100, 65), Image.LANCZOS)
             img.paste(logo, (PAD, 25), logo)
         except:
@@ -194,34 +195,35 @@ _PLANTILLAS = {
     "impacto": _componer_impacto,
 }
 
-def _componer(img: Image.Image, datos: dict, bottom_safe: int = 0) -> Image.Image:
-    branding = get_branding()
+def _componer(img: Image.Image, datos: dict, agente: dict = None, bottom_safe: int = 0) -> Image.Image:
+    branding = get_branding(agente)
+    branding["_logo_path"] = str(logo_path_absoluto(agente))
     dorado = hex_to_rgb(branding["color_secundario"])
     plantilla = branding.get("plantilla", "clasica")
     fn = _PLANTILLAS.get(plantilla, _componer_clasica)
     return fn(img, datos, branding, dorado)
 
-def componer_portada(foto_path: str, datos: dict) -> str:
+def componer_portada(foto_path: str, datos: dict, agente: dict = None) -> str:
     img = _cargar_cover(foto_path, SIZE, SIZE)
-    img = _componer(img, datos, bottom_safe=0)
+    img = _componer(img, datos, agente=agente, bottom_safe=0)
     return _guardar(img, "compuesta")
 
-def componer_stories(foto_path: str, datos: dict) -> str:
+def componer_stories(foto_path: str, datos: dict, agente: dict = None) -> str:
     img = _cargar_cover(foto_path, 1080, 1920)
-    img = _componer(img, datos, bottom_safe=190)
+    img = _componer(img, datos, agente=agente, bottom_safe=190)
     return _guardar(img, "stories")
 
-def componer_overlay_extras(extras_paths: list, datos: dict) -> list:
+def componer_overlay_extras(extras_paths: list, datos: dict, agente: dict = None) -> list:
     urls = []
     for ruta in (extras_paths or []):
         if ruta and Path(ruta).exists():
             img = _cargar_cover(ruta, SIZE, SIZE)
-            img = _componer(img, datos, bottom_safe=0)
+            img = _componer(img, datos, agente=agente, bottom_safe=0)
             urls.append(_guardar(img, "extra"))
     return urls
 
-def componer_collage(portada_path: str, extras_paths: list, datos: dict) -> str:
-    branding_data = get_branding()
+def componer_collage(portada_path: str, extras_paths: list, datos: dict, agente: dict = None) -> str:
+    branding_data = get_branding(agente)
     dorado = hex_to_rgb(branding_data["color_secundario"])
     rutas = [r for r in ([portada_path] + list(extras_paths or [])) if r and Path(r).exists()][:4]
     if not rutas:

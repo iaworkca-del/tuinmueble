@@ -302,14 +302,13 @@
     });
   })();
 
-  // WhatsApp: compartir mensaje + carrusel de imágenes seleccionadas
+  // WhatsApp: compartir imágenes seleccionadas + mensaje en un solo envío
   (function () {
     const wa = document.getElementById('waShare');
     const txt = document.getElementById('wa-text');
     if (!wa || !txt) return;
 
     function imagenesSeleccionadas() {
-      // mismas imágenes marcadas para el carrusel (.ig-check); si ninguna, la cuadrada
       let nombres = Array.from(document.querySelectorAll('.ig-check:checked')).map(function (c) { return c.value; });
       if (nombres.length === 0) {
         const primera = document.querySelector('.ig-check');
@@ -332,18 +331,36 @@
           const blob = await resp.blob();
           archivos.push(new File([blob], n, { type: blob.type || 'image/jpeg' }));
         }
-        const shareData = { text: texto };
-        if (archivos.length && navigator.canShare && navigator.canShare({ files: archivos })) {
-          shareData.files = archivos;
+
+        if (archivos.length && navigator.canShare) {
+          const shareData = { files: archivos, text: texto };
+          if (navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            wa.innerHTML = original;
+            wa.disabled = false;
+            return;
+          }
+          // Si no soporta files+text juntos, intentar solo files
+          const soloArchivos = { files: archivos };
+          if (navigator.canShare(soloArchivos)) {
+            await navigator.share(soloArchivos);
+            // Copiar texto al portapapeles para que lo pegue manualmente
+            try { await navigator.clipboard.writeText(texto); } catch(e) {}
+            wa.innerHTML = '📋 Texto copiado, pégalo en WhatsApp';
+            wa.disabled = false;
+            setTimeout(function() { wa.innerHTML = original; }, 4000);
+            return;
+          }
         }
-        await navigator.share(shareData);
-        wa.innerHTML = original;
-        wa.disabled = false;
-        return;
       } catch (e) {
-        // si el usuario cancela o no soporta Web Share
+        if (e.name === 'AbortError') {
+          wa.innerHTML = original;
+          wa.disabled = false;
+          return;
+        }
       }
 
+      // Fallback: abrir WhatsApp solo con texto
       window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
       wa.innerHTML = original;
       wa.disabled = false;

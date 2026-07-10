@@ -8,6 +8,11 @@ BRANDING_FILE = DATA_DIR / "branding.json"
 LOGO_PATH = BASE_DIR / "static" / "logo.png"
 FONDO_PATH = BASE_DIR / "static" / "fondo.jpg"
 
+LOGOS_DIR = BASE_DIR / "static" / "logos"
+FONDOS_DIR = BASE_DIR / "static" / "fondos"
+LOGOS_DIR.mkdir(exist_ok=True)
+FONDOS_DIR.mkdir(exist_ok=True)
+
 DEFAULTS = {
     "nombre_agencia": "Mi Propiedad",
     "color_primario": "#1a3a5c",
@@ -15,12 +20,10 @@ DEFAULTS = {
     "nombre_agente": "",
     "telefono_agente": "",
     "email_agente": "",
-    "fondo_opacidad": "30",  # visibilidad del fondo 0-100 (0=tenue, 100=muy visible)
-    "plantilla": "clasica",  # clasica, elegante, moderna, impacto
-    "franja_opacidad": "50",   # 0-100 (0=transparente, 100=oscuro)
-    "franja_tamano": "20",     # 15-40 (% de la imagen)
-
-    # Contenido del sitio público (editable desde /configuracion)
+    "fondo_opacidad": "30",
+    "plantilla": "clasica",
+    "franja_opacidad": "50",
+    "franja_tamano": "20",
     "eslogan": "Encuentra el hogar de tus sueños",
     "descripcion_agencia": (
         "Somos una agencia inmobiliaria comprometida con ayudarte a encontrar "
@@ -37,7 +40,31 @@ DEFAULTS = {
 }
 
 
-def _cargar_guardado() -> dict:
+def _branding_file(agente: dict = None) -> Path:
+    if agente:
+        agente_file = DATA_DIR / f"branding_agente_{agente['id']}.json"
+        if agente_file.exists():
+            return agente_file
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            cuenta_file = DATA_DIR / f"branding_cuenta_{cuenta_id}.json"
+            if cuenta_file.exists():
+                return cuenta_file
+    return BRANDING_FILE
+
+
+def _branding_file_para_guardar(agente: dict = None, nivel: str = "cuenta") -> Path:
+    if not agente:
+        return BRANDING_FILE
+    if nivel == "agente":
+        return DATA_DIR / f"branding_agente_{agente['id']}.json"
+    cuenta_id = agente.get("cuenta_id")
+    if cuenta_id:
+        return DATA_DIR / f"branding_cuenta_{cuenta_id}.json"
+    return BRANDING_FILE
+
+
+def _cargar_guardado(agente: dict = None) -> dict:
     data = dict(DEFAULTS)
     if BRANDING_FILE.exists():
         try:
@@ -47,32 +74,87 @@ def _cargar_guardado() -> dict:
                     data[clave] = guardado[clave]
         except Exception:
             pass
+    if agente:
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            cuenta_file = DATA_DIR / f"branding_cuenta_{cuenta_id}.json"
+            if cuenta_file.exists():
+                try:
+                    guardado = json.loads(cuenta_file.read_text(encoding="utf-8"))
+                    for clave in DEFAULTS:
+                        if clave in guardado:
+                            data[clave] = guardado[clave]
+                except Exception:
+                    pass
+        agente_file = DATA_DIR / f"branding_agente_{agente['id']}.json"
+        if agente_file.exists():
+            try:
+                guardado = json.loads(agente_file.read_text(encoding="utf-8"))
+                for clave in DEFAULTS:
+                    if clave in guardado:
+                        data[clave] = guardado[clave]
+            except Exception:
+                pass
     return data
 
 
-def fondo_url() -> str:
-    """URL del fondo con cache-bust, o '' si no hay fondo."""
-    if FONDO_PATH.exists():
+def _logo_path(agente: dict = None) -> Path:
+    if agente:
+        p = LOGOS_DIR / f"agente_{agente['id']}.png"
+        if p.exists():
+            return p
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            p = LOGOS_DIR / f"cuenta_{cuenta_id}.png"
+            if p.exists():
+                return p
+    return LOGO_PATH
+
+
+def _fondo_path(agente: dict = None) -> Path:
+    if agente:
+        p = FONDOS_DIR / f"agente_{agente['id']}.jpg"
+        if p.exists():
+            return p
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            p = FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
+            if p.exists():
+                return p
+    return FONDO_PATH
+
+
+def fondo_url(agente: dict = None) -> str:
+    fp = _fondo_path(agente)
+    if fp.exists():
         try:
-            return f"/static/fondo.jpg?v={int(FONDO_PATH.stat().st_mtime)}"
+            rel = fp.relative_to(BASE_DIR)
+            return f"/{str(rel).replace(chr(92), '/')}?v={int(fp.stat().st_mtime)}"
         except Exception:
-            return "/static/fondo.jpg"
+            return ""
     return ""
 
 
-def get_branding() -> dict:
-    data = _cargar_guardado()
-    data["fondo"] = fondo_url()  # campo calculado (no se persiste)
+def get_branding(agente: dict = None) -> dict:
+    data = _cargar_guardado(agente)
+    data["fondo"] = fondo_url(agente)
     return data
 
 
-def guardar_branding(nuevos: dict) -> dict:
-    data = _cargar_guardado()
+def guardar_branding(nuevos: dict, agente: dict = None, nivel: str = "cuenta") -> dict:
+    target = _branding_file_para_guardar(agente, nivel)
+    if target.exists():
+        try:
+            data = json.loads(target.read_text(encoding="utf-8"))
+        except Exception:
+            data = {}
+    else:
+        data = {}
     for clave in DEFAULTS:
         valor = nuevos.get(clave)
         if valor is not None and str(valor).strip() != "":
             data[clave] = valor
-    BRANDING_FILE.write_text(
+    target.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     return data
@@ -88,19 +170,46 @@ def hex_to_rgb(h: str) -> tuple:
         return (26, 58, 92)
 
 
-def logo_existe() -> bool:
-    return LOGO_PATH.exists()
+def logo_existe(agente: dict = None) -> bool:
+    return _logo_path(agente).exists()
 
 
-def logo_url() -> str:
-    """URL pública del logo de la agencia con cache-bust, o '' si no hay logo."""
-    if LOGO_PATH.exists():
+def logo_url(agente: dict = None) -> str:
+    lp = _logo_path(agente)
+    if lp.exists():
         try:
-            return f"/static/logo.png?v={int(LOGO_PATH.stat().st_mtime)}"
+            rel = lp.relative_to(BASE_DIR)
+            return f"/{str(rel).replace(chr(92), '/')}?v={int(lp.stat().st_mtime)}"
         except Exception:
-            return "/static/logo.png"
+            return ""
     return ""
 
 
-def fondo_existe() -> bool:
-    return FONDO_PATH.exists()
+def logo_path_absoluto(agente: dict = None) -> Path:
+    return _logo_path(agente)
+
+
+def logo_path_para_guardar(agente: dict = None, nivel: str = "cuenta") -> Path:
+    if not agente:
+        return LOGO_PATH
+    if nivel == "agente":
+        return LOGOS_DIR / f"agente_{agente['id']}.png"
+    cuenta_id = agente.get("cuenta_id")
+    if cuenta_id:
+        return LOGOS_DIR / f"cuenta_{cuenta_id}.png"
+    return LOGO_PATH
+
+
+def fondo_path_para_guardar(agente: dict = None, nivel: str = "cuenta") -> Path:
+    if not agente:
+        return FONDO_PATH
+    if nivel == "agente":
+        return FONDOS_DIR / f"agente_{agente['id']}.jpg"
+    cuenta_id = agente.get("cuenta_id")
+    if cuenta_id:
+        return FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
+    return FONDO_PATH
+
+
+def fondo_existe(agente: dict = None) -> bool:
+    return _fondo_path(agente).exists()

@@ -1,11 +1,13 @@
 import os
+import json
 import bcrypt
 from datetime import datetime, timedelta
 
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 
-from db import obtener_agente_por_usuario, obtener_agente, crear_agente, contar_agentes
+from db import (obtener_agente_por_usuario, obtener_agente, crear_agente,
+                contar_agentes, obtener_cuenta)
 
 DIAS_PRUEBA = 7
 ADMIN_TELEFONO = "+58 0414-8960164"
@@ -25,8 +27,6 @@ def verificar_password(password: str, password_hash: str) -> bool:
 
 
 def seed_admin():
-    """Crea la cuenta administradora inicial a partir de variables de entorno,
-    solo si aún no existen agentes registrados."""
     if contar_agentes() > 0:
         return
     usuario = os.environ.get("ADMIN_USUARIO")
@@ -60,7 +60,6 @@ def cerrar_sesion(request: Request):
 
 
 def requiere_login(request: Request):
-    """Dependencia de FastAPI: retorna el agente autenticado o levanta redirect."""
     agente = obtener_usuario_actual(request)
     if not agente:
         return None
@@ -79,24 +78,79 @@ def requiere_admin(request: Request):
     return agente
 
 
-def verificar_suscripcion(agente: dict) -> dict:
-    """Verifica el estado de suscripción de un agente.
+# ── Funciones multi-tenant ──
 
-    Retorna un dict con:
-      - activa (bool): si puede usar las funciones de IA
-      - plan (str): prueba, mensual, anual, vitalicio
-      - mensaje (str): mensaje para mostrar si está bloqueado
-      - dias_restantes (int|None): días que le quedan
-    """
+def es_superadmin(agente: dict) -> bool:
+    return bool(agente and agente.get("es_admin"))
+
+
+def es_principal_agente(agente: dict) -> bool:
+    return bool(agente and agente.get("es_principal"))
+
+
+def tiene_permiso(agente: dict, permiso: str) -> bool:
+    if not agente:
+        return False
+    if agente.get("es_admin"):
+        return True
+    if agente.get("es_principal"):
+        return True
+    try:
+        permisos = json.loads(agente.get("permisos") or "{}")
+    except (json.JSONDecodeError, TypeError):
+        permisos = {}
+    return permisos.get(permiso, False)
+
+
+def puede_ver_propiedad(agente: dict, prop_agente_id: int) -> bool:
+    if not agente:
+        return False
+    if agente.get("es_admin"):
+        return True
+    if prop_agente_id == agente["id"]:
+        return True
+    if agente.get("es_principal") and agente.get("cuenta_id"):
+        prop_agente = obtener_agente(prop_agente_id)
+        if prop_agente and prop_agente.get("cuenta_id") == agente["cuenta_id"]:
+            return True
+    return False
+
+
+def puede_modificar_propiedad(agente: dict, prop_agente_id: int) -> bool:
+    if not tiene_permiso(agente, "modificar_propiedad"):
+        return False
+    return puede_ver_propiedad(agente, prop_agente_id)
+
+
+def puede_eliminar_propiedad(agente: dict, prop_agente_id: int) -> bool:
+    if not tiene_permiso(agente, "eliminar_propiedad"):
+        return False
+    return puede_ver_propiedad(agente, prop_agente_id)
+
+
+def verificar_suscripcion(agente: dict) -> dict:
     if not agente:
         return {"activa": False, "plan": "", "mensaje": "Sin sesión.", "dias_restantes": None}
 
     if agente.get("es_admin"):
         return {"activa": True, "plan": "vitalicio", "mensaje": "", "dias_restantes": None}
 
-    plan = agente.get("plan") or "prueba"
-    inicio = agente.get("suscripcion_inicio") or agente.get("creado_en") or ""
-    fin = agente.get("suscripcion_fin") or ""
+    cuenta_id = agente.get("cuenta_id")
+    if cuenta_id:
+        cuenta = obtener_cuenta(cuenta_id)
+        if cuenta:
+            plan = cuenta.get("plan") or "prueba"
+            inicio = cuenta.get("suscripcion_inicio") or cuenta.get("creado_en") or ""
+            fin = cuenta.get("suscripcion_fin") or ""
+        else:
+            plan = agente.get("plan") or "prueba"
+            inicio = agente.get("suscripcion_inicio") or agente.get("creado_en") or ""
+            fin = agente.get("suscripcion_fin") or ""
+    else:
+        plan = agente.get("plan") or "prueba"
+        inicio = agente.get("suscripcion_inicio") or agente.get("creado_en") or ""
+        fin = agente.get("suscripcion_fin") or ""
+
     ahora = datetime.now()
 
     if plan == "vitalicio":
@@ -133,7 +187,6 @@ def verificar_suscripcion(agente: dict) -> dict:
             "dias_restantes": 0,
         }
 
-    # Planes pagos: mensual o anual
     if fin:
         try:
             fecha_fin = datetime.fromisoformat(fin)

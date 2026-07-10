@@ -334,7 +334,7 @@
         <div class="metrica-label">Noticias</div>
       </div>
     </div>
-    {% if agente.es_admin %}
+    {% if agente.es_admin or (agente.es_principal and agente.cuenta_id) %}
     <div class="metrica-card">
       <div class="metrica-icon morado">👥</div>
       <div>
@@ -369,10 +369,17 @@
     </a>
 
     {% if agente.es_admin %}
-    <a href="/panel/agentes" class="acceso-card ac-agentes">
+    <a href="/panel/admin" class="acceso-card ac-agentes">
       <div class="ac-icon">👤</div>
-      <h3>Gestión de Agentes</h3>
-      <p>Usuarios registrados, roles, suscripciones y permisos</p>
+      <h3>Admin Cuentas</h3>
+      <p>Gestionar cuentas, agentes, suscripciones y permisos</p>
+      <span class="ac-arrow">Ir →</span>
+    </a>
+    {% elif agente.es_principal and agente.cuenta_id %}
+    <a href="/panel/mi-equipo" class="acceso-card ac-agentes">
+      <div class="ac-icon">👥</div>
+      <h3>Mi Equipo</h3>
+      <p>Gestiona los agentes de tu cuenta y sus permisos</p>
       <span class="ac-arrow">Ir →</span>
     </a>
     {% endif %}

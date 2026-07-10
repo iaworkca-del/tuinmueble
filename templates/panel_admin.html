@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .badge-plan {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-vitalicio { background: #27ae60; color: #fff; }
+    .badge-mensual  { background: #2980b9; color: #fff; }
+    .badge-anual    { background: #8e44ad; color: #fff; }
+    .badge-prueba   { background: #f39c12; color: #fff; }
+    .badge-tipo {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-inmobiliaria { background: #2980b9; color: #fff; }
+    .badge-agente_independiente { background: #8e44ad; color: #fff; }
+    .cuenta-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border-left: 4px solid var(--azul);
+    }
+    .cuenta-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+    .cuenta-header h3 { margin: 0; color: var(--azul); }
+    .agentes-lista {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 0.8rem;
+      margin-top: 0.5rem;
+    }
+    .agente-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #eee;
+      font-size: 0.85rem;
+    }
+    .agente-row:last-child { border-bottom: none; }
+    .sub-form {
+      background: #f8f9fa;
+      border: 1px solid var(--gris);
+      border-radius: 10px;
+      padding: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .sub-form .sub-row {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .sub-form label {
+      font-size: 0.75rem;
+      color: #555;
+      font-weight: 600;
+      min-width: 50px;
+    }
+    .sub-form select, .sub-form input[type="date"] {
+      font-size: 0.78rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .sub-form input[type="date"] { flex: 1; min-width: 130px; }
+    .sub-form .btn-asignar {
+      background: var(--azul);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      width: 100%;
+    }
+    .sub-form .btn-asignar:hover { opacity: 0.85; }
+    .acciones-cuenta {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia }}</div>
+    <p>Administracion de cuentas</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel/admin/backup" class="btn-secondary" style="font-size:0.85rem; background:#27ae60; color:#fff;">💾 Backup</a>
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">Dashboard</a>
+    <a href="/panel/crear" class="btn-secondary" style="font-size:0.85rem;">+ Nueva propiedad</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
+</header>
+
+<div class="container">
+
+  {% if mensaje %}
+  <div class="card" style="border-left:4px solid #27ae60;">{{ mensaje }}</div>
+  {% endif %}
+  {% if error %}
+  <div class="card" style="border-left:4px solid #c0392b;">{{ error }}</div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Crear nueva cuenta</h2>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:1rem;">
+      Se crea la cuenta y su agente principal en un solo paso.
+    </p>
+    <form action="/panel/admin/cuenta" method="post" class="form-grid">
+      <div class="form-group">
+        <label for="nombre_cuenta">Nombre de la cuenta</label>
+        <input type="text" name="nombre_cuenta" id="nombre_cuenta" required
+               placeholder="Ej: Inmobiliaria Orinokia" />
+      </div>
+      <div class="form-group">
+        <label for="tipo_cuenta">Tipo</label>
+        <select name="tipo_cuenta" id="tipo_cuenta">
+          <option value="inmobiliaria">Inmobiliaria (max 4 agentes)</option>
+          <option value="agente_independiente">Agente Independiente (max 2)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="usuario_principal">Usuario del principal</label>
+        <input type="text" name="usuario_principal" id="usuario_principal" required />
+      </div>
+      <div class="form-group">
+        <label for="nombre_principal">Nombre completo</label>
+        <input type="text" name="nombre_principal" id="nombre_principal" required
+               placeholder="Nombre y apellido" />
+      </div>
+      <div class="form-group">
+        <label for="movil_principal">Numero de movil</label>
+        <input type="tel" name="movil_principal" id="movil_principal" required
+               placeholder="+58 412 1234567" />
+      </div>
+      <div class="form-group">
+        <label for="email_principal">Correo electronico</label>
+        <input type="email" name="email_principal" id="email_principal" required
+               placeholder="agente@correo.com" />
+      </div>
+      <div class="form-group">
+        <label for="password_principal">Contrasena</label>
+        <input type="password" name="password_principal" id="password_principal" required minlength="6" />
+      </div>
+      <div class="form-group full">
+        <button type="submit" class="btn-primary" style="width:auto; padding:0.7rem 2rem;">Crear cuenta</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Cuentas registradas ({{ cuentas|length }})</h2>
+
+    {% if cuentas %}
+    {% for c in cuentas %}
+    <div class="cuenta-card">
+      <div class="cuenta-header">
+        <div>
+          <h3>{{ c.nombre }}</h3>
+          <span class="badge-tipo badge-{{ c.tipo }}">{{ c.tipo | replace('_', ' ') }}</span>
+          {% set plan = c.plan or 'prueba' %}
+          <span class="badge-plan badge-{{ plan }}">{{ plan | capitalize }}</span>
+          {% if c.suscripcion_fin %}
+            <small style="color:#888;">Hasta: {{ c.suscripcion_fin[:10] }}</small>
+          {% endif %}
+        </div>
+        <div class="acciones-cuenta">
+          <form action="/panel/admin/cuenta/{{ c.id }}/estado" method="post">
+            <input type="hidden" name="activo" value="{{ 0 if c.activo else 1 }}" />
+            <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.7rem;">
+              {{ "Desactivar" if c.activo else "Activar" }}
+            </button>
+          </form>
+          <form action="/panel/admin/cuenta/{{ c.id }}/eliminar" method="post"
+                onsubmit="return confirm('Eliminar cuenta {{ c.nombre }} y todos sus agentes?');">
+            <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.7rem; color:#c0392b;">
+              Eliminar
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <form action="/panel/admin/cuenta/{{ c.id }}/suscripcion" method="post" class="sub-form" id="subForm{{ c.id }}">
+        <div class="sub-row">
+          <label>Plan</label>
+          <select name="plan" onchange="actualizarFechas({{ c.id }}, this.value)">
+            <option value="prueba" {{ 'selected' if plan == 'prueba' }}>Prueba (7 dias)</option>
+            <option value="mensual" {{ 'selected' if plan == 'mensual' }}>Mensual (30 dias)</option>
+            <option value="anual" {{ 'selected' if plan == 'anual' }}>Anual (365 dias)</option>
+            <option value="vitalicio" {{ 'selected' if plan == 'vitalicio' }}>Vitalicio</option>
+          </select>
+          <label>Inicio</label>
+          <input type="date" name="fecha_inicio" id="inicio{{ c.id }}"
+                 value="{{ c.suscripcion_inicio[:10] if c.suscripcion_inicio else '' }}"
+                 onchange="recalcularFin({{ c.id }})" />
+          <span id="rowFin{{ c.id }}" {% if plan == 'vitalicio' %}style="display:none;"{% endif %}>
+            <label>Fin</label>
+            <input type="date" name="fecha_fin" id="fin{{ c.id }}"
+                   value="{{ c.suscripcion_fin[:10] if c.suscripcion_fin else '' }}" />
+          </span>
+          <button type="submit" class="btn-asignar" style="width:auto; padding:0.4rem 1rem;">Asignar</button>
+        </div>
+      </form>
+
+      <div class="agentes-lista">
+        <strong style="font-size:0.8rem; color:#555;">Agentes ({{ c.agentes|length }}/{{ c.max_agentes }}):</strong>
+        {% for a in c.agentes %}
+        <div class="agente-row">
+          <span>
+            {{ a.nombre_completo or a.usuario }}
+            <small style="color:#888;">({{ a.usuario }})</small>
+            {% if a.es_principal %}<span class="badge-plan badge-vitalicio" style="font-size:0.65rem;">Principal</span>{% endif %}
+          </span>
+          <span>
+            {% if a.activo %}<span style="color:#27ae60; font-size:0.8rem;">Activo</span>{% else %}<span style="color:#c0392b; font-size:0.8rem;">Inactivo</span>{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+        {% if not c.agentes %}
+        <div style="color:#999; font-size:0.8rem; padding:0.3rem 0;">Sin agentes</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color:#888; text-align:center;">No hay cuentas creadas aun.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Todos los agentes ({{ todos_agentes|length }})</h2>
+
+    {% for a in todos_agentes %}
+    <div class="cuenta-card" style="border-left-color: {{ '#27ae60' if a.es_admin else '#2980b9' if a.es_principal else '#8e44ad' }};">
+      <div class="cuenta-header">
+        <div>
+          <h3 style="font-size:1rem;">{{ a.nombre_completo or a.usuario }}</h3>
+          <small style="color:#888;">@{{ a.usuario }}</small>
+          {% if a.es_admin %}
+            <span class="badge-plan badge-vitalicio">SuperAdmin</span>
+          {% elif a.es_principal %}
+            <span class="badge-tipo badge-inmobiliaria">Principal</span>
+          {% else %}
+            <span class="badge-tipo badge-agente_independiente">Basico</span>
+          {% endif %}
+          {% set aplan = a.plan or 'prueba' %}
+          <span class="badge-plan badge-{{ aplan }}">{{ aplan | capitalize }}</span>
+          {% if a.cuenta_id %}
+            {% for c in cuentas if c.id == a.cuenta_id %}
+            <small style="color:#555;">| {{ c.nombre }}</small>
+            {% endfor %}
+          {% else %}
+            <small style="color:#999;">| Sin cuenta</small>
+          {% endif %}
+          <span style="margin-left:0.5rem;">
+            {% if a.activo %}
+              <span style="color:#27ae60; font-size:0.8rem;">Activo</span>
+            {% else %}
+              <span style="color:#c0392b; font-size:0.8rem;">Inactivo</span>
+            {% endif %}
+          </span>
+          <span style="margin-left:0.5rem; font-size:0.8rem; color:#555;">
+            {{ a.propiedades.total }} prop. ({{ a.propiedades.publicadas }} pub.)
+          </span>
+          <div style="font-size:0.78rem; color:#777; margin-top:0.2rem;">
+            📱 {{ a.telefono_movil or 'Sin movil' }} &nbsp;·&nbsp; ✉ {{ a.email or 'Sin correo' }}
+          </div>
+        </div>
+        <div class="acciones-cuenta">
+          {% if not a.es_admin %}
+          <form action="/panel/admin/agente/{{ a.id }}/estado" method="post">
+            <input type="hidden" name="activo" value="{{ 0 if a.activo else 1 }}" />
+            <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.7rem;">
+              {{ "Desactivar" if a.activo else "Activar" }}
+            </button>
+          </form>
+          <form action="/panel/admin/agente/{{ a.id }}/eliminar" method="post"
+                onsubmit="return confirm('Eliminar agente {{ a.usuario }}? Se perderan sus propiedades.');">
+            <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.7rem; color:#c0392b;">
+              Eliminar
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if not a.es_admin %}
+      <form action="/panel/admin/agente/{{ a.id }}/suscripcion" method="post" class="sub-form" id="subFormA{{ a.id }}">
+        <div class="sub-row">
+          <label>Plan</label>
+          <select name="plan" onchange="actualizarFechas('A{{ a.id }}', this.value)">
+            <option value="prueba" {{ 'selected' if aplan == 'prueba' }}>Prueba (7 dias)</option>
+            <option value="mensual" {{ 'selected' if aplan == 'mensual' }}>Mensual (30 dias)</option>
+            <option value="anual" {{ 'selected' if aplan == 'anual' }}>Anual (365 dias)</option>
+            <option value="vitalicio" {{ 'selected' if aplan == 'vitalicio' }}>Vitalicio</option>
+          </select>
+          <label>Inicio</label>
+          <input type="date" name="fecha_inicio" id="inicioA{{ a.id }}"
+                 value="{{ a.suscripcion_inicio[:10] if a.suscripcion_inicio else '' }}"
+                 onchange="recalcularFin('A{{ a.id }}')" />
+          <span id="rowFinA{{ a.id }}" {% if aplan == 'vitalicio' %}style="display:none;"{% endif %}>
+            <label>Fin</label>
+            <input type="date" name="fecha_fin" id="finA{{ a.id }}"
+                   value="{{ a.suscripcion_fin[:10] if a.suscripcion_fin else '' }}" />
+          </span>
+          <button type="submit" class="btn-asignar" style="width:auto; padding:0.4rem 1rem;">Asignar plan</button>
+        </div>
+      </form>
+      {% endif %}
+
+      <details style="margin-top:0.6rem;">
+        <summary style="cursor:pointer; font-size:0.82rem; font-weight:600; color:var(--azul);">
+          Editar datos / contraseña
+        </summary>
+
+        <form action="/panel/admin/agente/{{ a.id }}/datos" method="post" class="sub-form" style="margin-top:0.5rem;">
+          <div class="sub-row">
+            <label>Nombre</label>
+            <input type="text" name="nombre_completo" value="{{ a.nombre_completo or '' }}"
+                   style="flex:1; min-width:140px; padding:0.35rem 0.5rem; border-radius:6px; border:1px solid #ccc;" />
+          </div>
+          <div class="sub-row">
+            <label>Móvil</label>
+            <input type="tel" name="telefono_movil" value="{{ a.telefono_movil or '' }}"
+                   placeholder="+58 412 1234567"
+                   style="flex:1; min-width:140px; padding:0.35rem 0.5rem; border-radius:6px; border:1px solid #ccc;" />
+            <label>Correo</label>
+            <input type="email" name="email" value="{{ a.email or '' }}"
+                   placeholder="agente@correo.com"
+                   style="flex:1; min-width:160px; padding:0.35rem 0.5rem; border-radius:6px; border:1px solid #ccc;" />
+            <button type="submit" class="btn-asignar" style="width:auto; padding:0.4rem 1rem;">Guardar datos</button>
+          </div>
+        </form>
+
+        <form action="/panel/admin/agente/{{ a.id }}/password" method="post" class="sub-form" style="margin-top:0.4rem;"
+              onsubmit="return confirm('Restablecer la contraseña de {{ a.usuario }}?');">
+          <div class="sub-row">
+            <label>Nueva contraseña</label>
+            <input type="text" name="password_nueva" required minlength="6"
+                   placeholder="mínimo 6 caracteres"
+                   style="flex:1; min-width:180px; padding:0.35rem 0.5rem; border-radius:6px; border:1px solid #ccc;" />
+            <button type="submit" class="btn-asignar" style="width:auto; padding:0.4rem 1rem; background:#c0392b;">
+              Restablecer contraseña
+            </button>
+          </div>
+        </form>
+      </details>
+    </div>
+    {% endfor %}
+
+    {% if not todos_agentes %}
+    <p style="color:#888; text-align:center;">No hay agentes registrados.</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+const DIAS_PLAN = { prueba: 7, mensual: 30, anual: 365 };
+
+function fechaISO(d) { return d.toISOString().slice(0, 10); }
+
+function actualizarFechas(id, plan) {
+  const inicio = document.getElementById('inicio' + id);
+  const rowFin = document.getElementById('rowFin' + id);
+  if (!inicio || !rowFin) return;
+  if (plan === 'vitalicio') { rowFin.style.display = 'none'; return; }
+  rowFin.style.display = '';
+  if (!inicio.value) inicio.value = fechaISO(new Date());
+  const dias = DIAS_PLAN[plan] || 30;
+  const fi = new Date(inicio.value + 'T00:00:00');
+  const ff = new Date(fi); ff.setDate(ff.getDate() + dias);
+  document.getElementById('fin' + id).value = fechaISO(ff);
+}
+
+function recalcularFin(id) {
+  const form = document.getElementById('subForm' + id);
+  if (!form) return;
+  const plan = form.querySelector('select[name="plan"]').value;
+  if (plan === 'vitalicio') return;
+  const dias = DIAS_PLAN[plan] || 30;
+  const fi = new Date(document.getElementById('inicio' + id).value + 'T00:00:00');
+  const ff = new Date(fi); ff.setDate(ff.getDate() + dias);
+  document.getElementById('fin' + id).value = fechaISO(ff);
+}
+</script>
+</body>
+</html>
