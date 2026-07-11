@@ -27,27 +27,18 @@ def verificar_password(password: str, password_hash: str) -> bool:
 
 
 def seed_admin():
-    n = contar_agentes()
-    print(f"seed_admin: contar_agentes()={n}")
-    if n > 0:
-        print("seed_admin: ya hay agentes, no se crea admin.")
+    if contar_agentes() > 0:
         return
     usuario = os.environ.get("ADMIN_USUARIO")
     password = os.environ.get("ADMIN_PASSWORD")
-    print(f"seed_admin: ADMIN_USUARIO presente={bool(usuario)} ADMIN_PASSWORD presente={bool(password)}")
     if not usuario or not password:
-        print("seed_admin: faltan variables de entorno, no se crea admin.")
         return
-    try:
-        nuevo = crear_agente(
-            usuario=usuario.strip(),
-            password_hash=hash_password(password),
-            nombre_completo="Administrador",
-            es_admin=True,
-        )
-        print(f"seed_admin: admin creado correctamente -> {nuevo}")
-    except Exception as e:
-        print(f"seed_admin: ERROR al crear admin: {e!r}")
+    crear_agente(
+        usuario=usuario.strip(),
+        password_hash=hash_password(password),
+        nombre_completo="Administrador",
+        es_admin=True,
+    )
 
 
 def obtener_usuario_actual(request: Request):
