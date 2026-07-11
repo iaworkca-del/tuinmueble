@@ -61,8 +61,11 @@
             <option value="">Seleccionar...</option>
             <option value="Casa">Casa</option>
             <option value="Departamento / Apartamento">Departamento / Apartamento</option>
-            <option value="Terreno">Terreno</option>
+            <option value="Terreno o Parcela">Terreno o Parcela</option>
             <option value="Penthouse">Penthouse</option>
+            <option value="Galpón">Galpón</option>
+            <option value="Local Comercial">Local Comercial</option>
+            <option value="Oficina">Oficina</option>
           </select>
         </div>
         <div class="form-group">
@@ -271,15 +274,39 @@
     el.textContent = this.files.length > 0 ? `${this.files.length} foto(s) seleccionada(s)` : '';
   });
 
-  // Ocultar campos según tipo de propiedad
-  document.getElementById('tipo_propiedad').addEventListener('change', function() {
-    const tipo = this.value;
-    const esTerrenoPuro = tipo === 'Terreno';
-    ['grp-habitaciones', 'grp-banos', 'grp-m2-const'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = esTerrenoPuro ? 'none' : '';
-    });
-  });
+  // Reglas de campos según tipo de propiedad
+  const SIN_HABITACIONES = ['Galpón', 'Local Comercial', 'Oficina', 'Terreno o Parcela'];
+  const SOLO_TERRENO = ['Terreno o Parcela'];
+
+  function aplicarReglasTipo() {
+    const tipo = document.getElementById('tipo_propiedad').value;
+    const grpHabitaciones = document.getElementById('grp-habitaciones');
+    const inputHabitaciones = document.getElementById('habitaciones');
+    const grpBanos = document.getElementById('grp-banos');
+    const grpM2Const = document.getElementById('grp-m2-const');
+
+    const sinHabitaciones = SIN_HABITACIONES.includes(tipo);
+    const soloTerreno = SOLO_TERRENO.includes(tipo);
+
+    if (inputHabitaciones) {
+      inputHabitaciones.disabled = sinHabitaciones;
+      if (sinHabitaciones) {
+        inputHabitaciones.value = '';
+        inputHabitaciones.placeholder = 'No aplica';
+      } else {
+        inputHabitaciones.placeholder = 'Ej: 3';
+      }
+    }
+    if (grpHabitaciones) {
+      grpHabitaciones.style.display = soloTerreno ? 'none' : '';
+      grpHabitaciones.style.opacity = sinHabitaciones ? '0.5' : '1';
+    }
+    if (grpBanos) grpBanos.style.display = soloTerreno ? 'none' : '';
+    if (grpM2Const) grpM2Const.style.display = soloTerreno ? 'none' : '';
+  }
+
+  document.getElementById('tipo_propiedad').addEventListener('change', aplicarReglasTipo);
+  aplicarReglasTipo();
 
   // Loading al enviar
   document.getElementById('mainForm').addEventListener('submit', function() {

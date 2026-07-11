@@ -408,11 +408,65 @@ body.publico {
 .pub-footer {
   background: #0f1c28;
   color: #b8c1c9;
-  text-align: center;
-  padding: 2.2rem 1.5rem;
-  font-size: 0.85rem;
+  padding: 2.4rem 2.2rem 1.4rem;
+  font-size: 0.8rem;
 }
-.pub-footer a { color: var(--pub-secundario); text-decoration: none; }
+.pub-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1.5rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-bottom: 1.6rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.pub-footer-nombre {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+.pub-footer-eslogan {
+  color: #8a95a0;
+  font-size: 0.8rem;
+  margin-bottom: 0.9rem;
+  line-height: 1.5;
+}
+.pub-footer-redes { display: flex; gap: 0.6rem; }
+.pub-footer-icono {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: #b8c1c9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.pub-footer-icono svg { width: 15px; height: 15px; }
+.pub-footer-icono:hover { background: var(--pub-secundario); color: #1a1a1a; }
+.pub-footer-tit {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.pub-footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+.pub-footer-links a { color: #b8c1c9; text-decoration: none; font-size: 0.8rem; transition: color 0.2s ease; }
+.pub-footer-links a:hover { color: var(--pub-secundario); }
+.pub-footer-copy {
+  text-align: center;
+  color: #6f7a84;
+  font-size: 0.75rem;
+  max-width: 1180px;
+  margin: 1.2rem auto 0;
+}
+@media (max-width: 720px) {
+  .pub-footer-grid { grid-template-columns: 1fr; gap: 1.8rem; }
+}
 
 /* ── Detalle propiedad ── */
 .pub-detalle-hero {

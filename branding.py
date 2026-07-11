@@ -37,6 +37,9 @@ DEFAULTS = {
     "servicio_2_desc": "Encontramos el inquilino o la propiedad ideal para ti, con contratos claros y seguros.",
     "servicio_3_titulo": "Asesoría inmobiliaria",
     "servicio_3_desc": "Te asesoramos con información del mercado para que tomes la mejor decisión de inversión.",
+    "instagram": "",
+    "facebook": "",
+    "x": "",
 }
 
 
@@ -142,7 +145,7 @@ def get_branding(agente: dict = None) -> dict:
     return data
 
 
-def guardar_branding(nuevos: dict, agente: dict = None, nivel: str = "cuenta") -> dict:
+def guardar_branding(nuevos: dict, agente: dict = None, nivel: str = "cuenta", campos_limpiables: set = None) -> dict:
     target = _branding_file_para_guardar(agente, nivel)
     if target.exists():
         try:
@@ -151,9 +154,12 @@ def guardar_branding(nuevos: dict, agente: dict = None, nivel: str = "cuenta") -
             data = {}
     else:
         data = {}
+    campos_limpiables = campos_limpiables or set()
     for clave in DEFAULTS:
+        if clave not in nuevos:
+            continue
         valor = nuevos.get(clave)
-        if valor is not None and str(valor).strip() != "":
+        if valor is not None and (str(valor).strip() != "" or clave in campos_limpiables):
             data[clave] = valor
     target.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"

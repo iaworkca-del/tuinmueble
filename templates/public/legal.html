@@ -1,0 +1,16 @@
+{% extends "public/base.html" %}
+{% block titulo %}{{ titulo_doc }} — {{ branding.nombre_agencia }}{% endblock %}
+
+{% block contenido %}
+<section class="pub-seccion pub-reveal" style="max-width:880px; padding-top:7.5rem;">
+  <div class="pub-seccion-tit" style="text-align:left; margin-bottom:2rem;">
+    <h2>{{ titulo_doc }}</h2>
+  </div>
+  {% for encabezado, texto in bloques %}
+  <div style="margin-bottom:1.8rem;">
+    <h3 style="color:var(--pub-primario); font-size:1.1rem; margin-bottom:0.5rem;">{{ encabezado }}</h3>
+    <p style="color:#555; line-height:1.7;">{{ texto }}</p>
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -32,13 +32,12 @@
 
 {% block contenido %}{% endblock %}
 
-<footer class="pub-footer">
-  <p>&copy; {{ anio }} {{ branding.nombre_agencia }}. Todos los derechos reservados.</p>
-  {% if branding.telefono_agente %}
-  <p>Contáctanos: <a href="https://wa.me/{{ branding.telefono_agente | replace('+','') | replace(' ','') }}">{{ branding.telefono_agente }}</a>
-  {% if branding.email_agente %} · {{ branding.email_agente }}{% endif %}</p>
-  {% endif %}
-</footer>
+{% set footer_enlaces = [
+  {'texto': 'Servicios', 'href': '/servicios'},
+  {'texto': 'Propiedades', 'href': '/catalogo'},
+  {'texto': 'Sobre Nosotros', 'href': '/#nosotros'},
+] %}
+{% include 'public/_footer.html' %}
 
 <script src="/static/js/parallax.js"></script>
 {% block scripts_extra %}{% endblock %}
