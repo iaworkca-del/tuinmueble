@@ -616,11 +616,23 @@ async def restaurar_form(request: Request, ok: int = 0, error: str = ""):
       </p>
       {mensaje}
       <form action="/panel/admin/restaurar" method="post" enctype="multipart/form-data">
-        <input type="file" name="archivo" accept=".zip" required style="margin:1rem 0;" />
-        <button type="submit" class="btn-primary">Restaurar</button>
+        <label class="file-label" for="archivo">
+          <span>Clic para seleccionar el .zip</span>
+          <small>Backup generado por "Descargar backup"</small>
+        </label>
+        <input type="file" name="archivo" id="archivo" accept=".zip" required />
+        <div class="file-name" id="archivo-name"></div>
+        <button type="submit" class="btn-primary" style="margin-top:1rem;">Restaurar</button>
       </form>
       <a href="/panel" class="btn-secondary" style="display:inline-block; margin-top:1rem;">Volver</a>
-    </div></div></body></html>
+    </div></div>
+    <script>
+      document.getElementById('archivo').addEventListener('change', function() {{
+        var el = document.getElementById('archivo-name');
+        el.textContent = this.files[0] ? this.files[0].name : '';
+      }});
+    </script>
+    </body></html>
     """)
 
 
