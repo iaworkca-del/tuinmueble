@@ -311,6 +311,10 @@ body.publico {
   left: 0; right: 0; bottom: 0;
   padding: 1.3rem 1.4rem;
 }
+.pub-banner-info-simple {
+  background: linear-gradient(180deg, rgba(10,20,30,0) 0%, rgba(10,20,30,0.65) 100%);
+  padding-top: 2.5rem;
+}
 .pub-banner-precio { font-size: 1.35rem; font-weight: 800; }
 .pub-banner-tipo { font-size: 0.9rem; opacity: 0.9; margin-top: 0.15rem; }
 .pub-banner-ubic { font-size: 0.82rem; opacity: 0.85; margin-top: 0.3rem; }

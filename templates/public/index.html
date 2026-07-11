@@ -39,12 +39,8 @@
       {% else %}
       <div class="pub-banner-img pub-banner-img-vacio"></div>
       {% endif %}
-      <div class="pub-banner-overlay"></div>
       <span class="pub-banner-badge">{{ p.operacion }}</span>
-      <div class="pub-banner-info">
-        <div class="pub-banner-precio">USD ${{ "{:,.0f}".format(p.precio or 0) }}</div>
-        <div class="pub-banner-tipo">{{ p.tipo_propiedad }}</div>
-        <div class="pub-banner-ubic">📍 {{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
+      <div class="pub-banner-info pub-banner-info-simple">
         <span class="pub-banner-cta">Ver más →</span>
       </div>
     </a>
