@@ -156,6 +156,7 @@ async def inicio_publico(request: Request):
             "propiedades": propiedades,
             "noticias": noticias,
             "anio": datetime.now().year,
+            "logo_url": logo_url(),
         },
     )
 
@@ -171,6 +172,7 @@ async def servicios_publico(request: Request):
             "logo_url": logo_url(),
             "anio": datetime.now().year,
             "propiedades_top": listar_propiedades_top(10),
+            "logo_url": logo_url(),
         },
     )
 
@@ -187,6 +189,7 @@ async def catalogo_publico(request: Request):
             "logo_url": logo_url(),
             "propiedades": propiedades,
             "anio": datetime.now().year,
+            "logo_url": logo_url(),
         },
     )
 
@@ -200,7 +203,7 @@ async def catalogo_detalle_publico(request: Request, prop_id: int):
     return templates.TemplateResponse(
         request=request,
         name="public/propiedad_detalle.html",
-        context={"branding": get_branding(), "logo_url": logo_url(), "anio": datetime.now().year, **payload},
+        context={"branding": get_branding(), "anio": datetime.now().year, "logo_url": logo_url(), **payload},
     )
 
 
@@ -218,79 +221,107 @@ async def noticia_detalle_publico(request: Request, noticia_id: int):
             "logo_url": logo_url(),
             "anio": datetime.now().year,
             "noticia": noticia,
+            "logo_url": logo_url(),
         },
     )
 
 
 # ──────────────────────────────────────────────────────────────
-# Páginas legales públicas
+# Páginas legales (rutas explícitas, NO usar comodín /{doc} porque
+# interceptaría /login, /panel, etc.)
 # ──────────────────────────────────────────────────────────────
 
 _LEGAL_DOCS = {
     "privacidad": {
         "titulo": "Política de Privacidad",
-        "contenido": [
-            {"titulo": "1. Información que recopilamos",
-             "texto": "Recopilamos los datos que nos proporcionas voluntariamente a través de "
-                      "nuestros formularios de contacto (nombre, teléfono, correo electrónico y el "
-                      "mensaje o propiedad de interés), con el único fin de responder a tu solicitud."},
-            {"titulo": "2. Uso de la información",
-             "texto": "Usamos tus datos exclusivamente para contactarte, atender tu consulta y "
-                      "ofrecerte información sobre propiedades y servicios inmobiliarios. No vendemos "
-                      "ni compartimos tu información con terceros ajenos a nuestra operación."},
-            {"titulo": "3. Conservación y seguridad",
-             "texto": "Tus datos se almacenan de forma segura y se conservan únicamente durante el "
-                      "tiempo necesario para gestionar tu solicitud o mientras exista una relación comercial."},
-            {"titulo": "4. Tus derechos",
-             "texto": "Puedes solicitar en cualquier momento acceder, corregir o eliminar tus datos "
-                      "personales contactándonos por los medios indicados al pie de esta página."},
+        "bloques": [
+            (
+                "Información que recopilamos",
+                "Recopilamos los datos que nos proporcionas voluntariamente a través de "
+                "nuestros formularios de contacto (nombre, teléfono, correo electrónico y el "
+                "mensaje o propiedad de interés), con el único fin de responder a tu solicitud.",
+            ),
+            (
+                "Uso de la información",
+                "Usamos tus datos exclusivamente para contactarte, atender tu consulta y "
+                "ofrecerte información sobre propiedades y servicios inmobiliarios. No vendemos "
+                "ni compartimos tu información con terceros ajenos a nuestra operación.",
+            ),
+            (
+                "Conservación y seguridad",
+                "Tus datos se almacenan de forma segura y se conservan únicamente durante el "
+                "tiempo necesario para gestionar tu solicitud o mientras exista una relación comercial.",
+            ),
+            (
+                "Tus derechos",
+                "Puedes solicitar en cualquier momento acceder, corregir o eliminar tus "
+                "datos personales escribiéndonos a través de los medios de contacto "
+                "publicados en este sitio.",
+            ),
         ],
     },
     "terminos": {
         "titulo": "Términos de Servicio",
-        "contenido": [
-            {"titulo": "1. Aceptación",
-             "texto": "Al utilizar este sitio web aceptas los presentes Términos de Servicio. Si no "
-                      "estás de acuerdo con ellos, te pedimos no continuar usando el sitio."},
-            {"titulo": "2. Uso del sitio",
-             "texto": "La información publicada (propiedades, precios y descripciones) es de carácter "
-                      "referencial y puede cambiar sin previo aviso. No constituye una oferta contractual "
-                      "vinculante."},
-            {"titulo": "3. Propiedad intelectual",
-             "texto": "Las marcas, logotipos y contenidos mostrados pertenecen a sus respectivos "
-                      "titulares y no pueden reproducirse sin autorización."},
-            {"titulo": "4. Contacto",
-             "texto": "Para dudas sobre estos términos, utiliza los datos de contacto que aparecen al "
-                      "pie de esta página."},
+        "bloques": [
+            (
+                "Aceptación",
+                "Al utilizar este sitio web aceptas los presentes Términos de Servicio. Si no "
+                "estás de acuerdo con ellos, te pedimos no continuar usando el sitio.",
+            ),
+            (
+                "Uso del sitio",
+                "La información publicada (propiedades, precios y descripciones) es de carácter "
+                "referencial y puede cambiar sin previo aviso. No constituye una oferta contractual "
+                "vinculante. Recomendamos confirmar los detalles directamente con el agente.",
+            ),
+            (
+                "Propiedad intelectual",
+                "Las marcas, logotipos, imágenes, textos y contenido publicados en este sitio "
+                "pertenecen a la agencia o a sus respectivos titulares y no pueden reproducirse "
+                "sin autorización previa.",
+            ),
+            (
+                "Contacto",
+                "Para dudas sobre estos términos, utiliza los datos de contacto que aparecen al "
+                "pie de esta página.",
+            ),
         ],
     },
 }
 
 
-def _render_legal(request: Request, doc: str):
-    info = _LEGAL_DOCS[doc]
+@app.get("/privacidad", response_class=HTMLResponse)
+async def legal_privacidad(request: Request):
     _cerrar_sesion_agente(request)
+    doc = _LEGAL_DOCS["privacidad"]
     return templates.TemplateResponse(
         request=request,
         name="public/legal.html",
         context={
             "branding": get_branding(),
-            "logo_url": logo_url(),
             "anio": datetime.now().year,
-            "titulo": info["titulo"],
-            "contenido": info["contenido"],
+            "logo_url": logo_url(),
+            "titulo_doc": doc["titulo"],
+            "bloques": doc["bloques"],
         },
     )
 
 
-@app.get("/privacidad", response_class=HTMLResponse)
-async def pagina_privacidad(request: Request):
-    return _render_legal(request, "privacidad")
-
-
 @app.get("/terminos", response_class=HTMLResponse)
-async def pagina_terminos(request: Request):
-    return _render_legal(request, "terminos")
+async def legal_terminos(request: Request):
+    _cerrar_sesion_agente(request)
+    doc = _LEGAL_DOCS["terminos"]
+    return templates.TemplateResponse(
+        request=request,
+        name="public/legal.html",
+        context={
+            "branding": get_branding(),
+            "anio": datetime.now().year,
+            "logo_url": logo_url(),
+            "titulo_doc": doc["titulo"],
+            "bloques": doc["bloques"],
+        },
+    )
 
 
 # ──────────────────────────────────────────────────────────────
@@ -726,6 +757,80 @@ async def backup_descarga(request: Request):
         filename=zip_name,
         headers={"Content-Disposition": f"attachment; filename={zip_name}"},
     )
+
+
+@app.get("/panel/admin/restaurar", response_class=HTMLResponse)
+async def restaurar_form(request: Request, ok: int = 0, error: str = ""):
+    agente = obtener_usuario_actual(request)
+    if not agente or not es_superadmin(agente):
+        return RedirectResponse(url="/panel", status_code=303)
+    mensaje = ""
+    if ok:
+        mensaje = "<div class='card' style='border-left:4px solid #27ae60;'>✅ Datos restaurados correctamente.</div>"
+    elif error:
+        mensaje = f"<div class='card' style='border-left:4px solid #c0392b;'>⚠ {error}</div>"
+    return HTMLResponse(f"""
+    <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+    <title>Restaurar respaldo</title><link rel="stylesheet" href="/static/style.css"></head>
+    <body><div class="container" style="max-width:520px; margin-top:3rem;">
+    <div class="card">
+      <h2>Restaurar respaldo de datos</h2>
+      <p style="font-size:0.85rem; color:#888;">
+        Sube el .zip generado por "Descargar backup" (data/propiedades.db, branding*.json, static/logos, static/fondo/logo).
+        Esto SOBRESCRIBE los datos actuales del volumen persistente.
+      </p>
+      {mensaje}
+      <form action="/panel/admin/restaurar" method="post" enctype="multipart/form-data">
+        <label class="file-label" for="archivo">
+          <span>Clic para seleccionar el .zip</span>
+          <small>Backup generado por "Descargar backup"</small>
+        </label>
+        <input type="file" name="archivo" id="archivo" accept=".zip" required />
+        <div class="file-name" id="archivo-name"></div>
+        <button type="submit" class="btn-primary" style="margin-top:1rem;">Restaurar</button>
+      </form>
+      <a href="/panel" class="btn-secondary" style="display:inline-block; margin-top:1rem;">Volver</a>
+    </div></div>
+    <script>
+      document.getElementById('archivo').addEventListener('change', function() {{
+        var el = document.getElementById('archivo-name');
+        el.textContent = this.files[0] ? this.files[0].name : '';
+      }});
+    </script>
+    </body></html>
+    """)
+
+
+@app.post("/panel/admin/restaurar")
+async def restaurar_submit(request: Request, archivo: UploadFile = File(...)):
+    import zipfile
+    agente = obtener_usuario_actual(request)
+    if not agente or not es_superadmin(agente):
+        return RedirectResponse(url="/panel", status_code=303)
+    if not archivo.filename or not archivo.filename.lower().endswith(".zip"):
+        return RedirectResponse(url="/panel/admin/restaurar?error=El+archivo+debe+ser+un+.zip", status_code=303)
+    tmp_zip = UPLOAD_DIR / f"restaurar_{uuid.uuid4().hex[:8]}.zip"
+    try:
+        with tmp_zip.open("wb") as f:
+            shutil.copyfileobj(archivo.file, f)
+        data_dir = BASE_DIR / "data"
+        static_dir = BASE_DIR / "static"
+        data_dir.mkdir(exist_ok=True)
+        with zipfile.ZipFile(str(tmp_zip), "r") as zf:
+            for nombre in zf.namelist():
+                if nombre.endswith("/"):
+                    continue
+                if not (nombre.startswith("data/") or nombre.startswith("static/")):
+                    continue
+                destino = BASE_DIR / nombre
+                destino.parent.mkdir(parents=True, exist_ok=True)
+                with zf.open(nombre) as origen, destino.open("wb") as salida:
+                    shutil.copyfileobj(origen, salida)
+        return RedirectResponse(url="/panel/admin/restaurar?ok=1", status_code=303)
+    except Exception as e:
+        return RedirectResponse(url=f"/panel/admin/restaurar?error={quote(str(e)[:150])}", status_code=303)
+    finally:
+        tmp_zip.unlink(missing_ok=True)
 
 
 # ──────────────────────────────────────────────────────────────

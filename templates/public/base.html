@@ -16,9 +16,11 @@
 <body class="publico">
 
 <nav class="pub-nav">
-  <a href="/" class="marca" style="display:inline-flex; align-items:center; gap:0.6rem;">
-    {% if logo_url %}<img src="{{ logo_url }}" alt="{{ branding.nombre_agencia }}" style="height:60px; width:auto;" />{% endif %}
-    <span style="color:#fff;">{{ branding.nombre_agencia }}<span style="color:var(--pub-secundario);">.</span></span>
+  <a href="/" class="marca">
+    {% if branding.logo %}
+    <img src="{{ branding.logo }}" alt="{{ branding.nombre_agencia }}" class="marca-logo" />
+    {% endif %}
+    {{ branding.nombre_agencia }}<span>.</span>
   </a>
   <div class="links">
     <a href="/" class="link">Inicio</a>
@@ -33,7 +35,7 @@
 {% set footer_enlaces = [
   {'texto': 'Servicios', 'href': '/servicios'},
   {'texto': 'Propiedades', 'href': '/catalogo'},
-  {'texto': 'Sobre Nosotros', 'href': '/#nosotros'}
+  {'texto': 'Sobre Nosotros', 'href': '/#nosotros'},
 ] %}
 {% include 'public/_footer.html' %}
 

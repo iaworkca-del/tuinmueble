@@ -31,11 +31,20 @@ body.publico {
   box-shadow: 0 2px 14px rgba(0,0,0,0.25);
 }
 .pub-nav .marca {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   color: #fff;
   font-weight: 700;
   font-size: 1.3rem;
   letter-spacing: 0.3px;
   text-decoration: none;
+}
+.pub-nav .marca-logo {
+  height: 60px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
 }
 .pub-nav .marca span { color: var(--pub-secundario); }
 .pub-nav .links {
@@ -302,6 +311,10 @@ body.publico {
   left: 0; right: 0; bottom: 0;
   padding: 1.3rem 1.4rem;
 }
+.pub-banner-info-simple {
+  background: linear-gradient(180deg, rgba(10,20,30,0) 0%, rgba(10,20,30,0.65) 100%);
+  padding-top: 2.5rem;
+}
 .pub-banner-precio { font-size: 1.35rem; font-weight: 800; }
 .pub-banner-tipo { font-size: 0.9rem; opacity: 0.9; margin-top: 0.15rem; }
 .pub-banner-ubic { font-size: 0.82rem; opacity: 0.85; margin-top: 0.3rem; }
@@ -399,81 +412,64 @@ body.publico {
 .pub-footer {
   background: #0f1c28;
   color: #b8c1c9;
-  padding: 1.9rem 1.5rem 1.1rem;
+  padding: 2.4rem 2.2rem 1.4rem;
   font-size: 0.8rem;
 }
-.pub-footer a { color: var(--pub-secundario); text-decoration: none; }
-
-/* ── Footer de columnas (marca · enlaces · legal) ── */
 .pub-footer-grid {
-  max-width: 1000px;
-  margin: 0 auto;
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  gap: 1.6rem;
-  text-align: left;
-  padding-bottom: 1.2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 1.5rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-bottom: 1.6rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.pub-footer-marca {
-  font-size: 1.1rem;
-  font-weight: 800;
+.pub-footer-nombre {
   color: #fff;
-  margin-bottom: 0.2rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
 }
 .pub-footer-eslogan {
-  color: #8b98a5;
-  font-size: 0.82rem;
-  margin-bottom: 0.8rem;
-  line-height: 1.45;
+  color: #8a95a0;
+  font-size: 0.8rem;
+  margin-bottom: 0.9rem;
+  line-height: 1.5;
 }
-.pub-footer-col h4 {
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 0.7rem;
-}
-.pub-footer-col ul { list-style: none; padding: 0; margin: 0; }
-.pub-footer-col ul li { margin-bottom: 0.4rem; }
-.pub-footer-col ul li a { color: #b8c1c9; font-size: 0.82rem; transition: color 0.2s; }
-.pub-footer-col ul li a:hover { color: var(--pub-secundario); }
-.pub-footer-social {
-  display: flex;
-  gap: 0.5rem;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.pub-footer-social a {
+.pub-footer-redes { display: flex; gap: 0.6rem; }
+.pub-footer-icono {
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: #b8c1c9;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.pub-footer-icono svg { width: 15px; height: 15px; }
+.pub-footer-icono:hover { background: var(--pub-secundario); color: #1a1a1a; }
+.pub-footer-tit {
   color: #fff;
-  transition: background 0.2s, transform 0.2s, color 0.2s;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
-.pub-footer-social a:hover {
-  background: var(--pub-secundario);
-  color: #0f1c28;
-  transform: translateY(-2px);
-}
-.pub-footer-social svg { width: 15px; height: 15px; fill: currentColor; }
+.pub-footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+.pub-footer-links a { color: #b8c1c9; text-decoration: none; font-size: 0.8rem; transition: color 0.2s ease; }
+.pub-footer-links a:hover { color: var(--pub-secundario); }
 .pub-footer-copy {
-  max-width: 1000px;
-  margin: 0 auto;
   text-align: center;
-  padding-top: 1rem;
-  color: #7a8792;
-  font-size: 0.76rem;
+  color: #6f7a84;
+  font-size: 0.75rem;
+  max-width: 1180px;
+  margin: 1.2rem auto 0;
 }
 @media (max-width: 720px) {
-  .pub-footer-grid { grid-template-columns: 1fr; gap: 1.4rem; text-align: center; }
-  .pub-footer-social { justify-content: center; }
+  .pub-footer-grid { grid-template-columns: 1fr; gap: 1.8rem; }
 }
 
 /* ── Detalle propiedad ── */

@@ -4,3 +4,12 @@ __pycache__/
 .venv/
 .claude/
 *.db-journal
+
+# Datos reales de produccion: viven en el Volume de Railway (/app/data),
+# NO en git. Ver PROCEDIMIENTO_DEPLOY.md antes de tocar estos archivos.
+data/propiedades.db
+data/propiedades.db.BACKUP
+data/propiedades_backup_*.db
+data/branding.json
+data/branding_backup_*.json
+data/branding_cuenta_*.json

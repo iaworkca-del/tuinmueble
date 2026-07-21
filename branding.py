@@ -186,6 +186,7 @@ def fondo_url(agente: dict = None) -> str:
 def get_branding(agente: dict = None) -> dict:
     data = _cargar_guardado(agente)
     data["fondo"] = fondo_url(agente)
+    data["logo"] = logo_url(agente)
     return data
 
 
@@ -208,6 +209,8 @@ def guardar_branding(nuevos: dict, agente: dict = None, nivel: str = "cuenta",
     else:
         data = {}
     for clave in DEFAULTS:
+        if clave not in nuevos:
+            continue
         valor = nuevos.get(clave)
         # Los campos "limpiables" se guardan aunque queden vacíos (para poder borrarlos).
         if clave in campos_limpiables:
