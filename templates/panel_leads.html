@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contactos / Leads — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .lead-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.1rem 1.2rem;
+      margin-bottom: 0.9rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border-left: 4px solid var(--azul);
+    }
+    .lead-card.no-leido { border-left-color: #e67e22; background: #fffaf3; }
+    .lead-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .lead-nombre { font-weight: 700; color: var(--azul); font-size: 1.02rem; }
+    .lead-fecha { font-size: 0.78rem; color: #999; }
+    .lead-badge-nuevo {
+      display: inline-block; background: #e67e22; color: #fff;
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      padding: 0.12rem 0.5rem; border-radius: 10px; margin-left: 0.4rem;
+    }
+    .lead-datos { margin-top: 0.5rem; font-size: 0.9rem; color: #444; }
+    .lead-datos a { color: var(--azul); }
+    .lead-mensaje {
+      margin-top: 0.5rem; font-size: 0.9rem; color: #333;
+      background: #f8f9fa; border-radius: 8px; padding: 0.6rem 0.8rem;
+    }
+    .lead-cita-badge {
+      margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #1a3a5c;
+      background: #eaf2fb; border-radius: 8px; padding: 0.5rem 0.7rem; display: inline-block;
+    }
+    .lead-acciones { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem; }
+    .lead-acciones button {
+      font-size: 0.78rem; padding: 0.35rem 0.8rem; border-radius: 6px;
+      border: none; cursor: pointer;
+    }
+    .btn-leido { background: #27ae60; color: #fff; }
+    .btn-noleido { background: #95a5a6; color: #fff; }
+    .btn-wa { background: #25d366; color: #fff; text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.78rem; }
+    .btn-del { background: #e74c3c; color: #fff; }
+  </style>
+</head>
+<body>
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia }}</div>
+    <p>Contactos recibidos {% if es_admin %}(todas las cuentas){% endif %}</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">📊 Dashboard</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
+</header>
+
+<div class="container">
+  {% if mensaje %}
+  <div class="card" style="border-left:4px solid #27ae60;">{{ mensaje }}</div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Leads / Contactos ({{ leads|length }})</h2>
+    <p style="font-size:0.85rem; color:#888;">
+      Datos de personas interesadas capturados desde tu página web pública o la de la inmobiliaria/agente,
+      integrados aquí con notas de contacto para tu seguimiento.
+    </p>
+  </div>
+
+  {% for l in leads %}
+  <div class="lead-card {{ 'no-leido' if not l.leido else '' }}">
+    <div class="lead-top">
+      <div>
+        <span class="lead-nombre">{{ l.nombre }}</span>
+        {% if not l.leido %}<span class="lead-badge-nuevo">Nuevo</span>{% endif %}
+        {% if es_admin and l.cuenta_id %}
+        <div style="font-size:0.78rem; color:#777;">Cuenta: {{ cuentas_map.get(l.cuenta_id, '—') }}</div>
+        {% endif %}
+      </div>
+      <span class="lead-fecha">{{ l.creado_en[:16] | replace('T', ' ') }}</span>
+    </div>
+
+    <div class="lead-datos">
+      {% if l.telefono %}📱 <a href="tel:{{ l.telefono }}">{{ l.telefono }}</a>{% endif %}
+      {% if l.telefono and l.email %} &nbsp;·&nbsp; {% endif %}
+      {% if l.email %}✉ <a href="mailto:{{ l.email }}">{{ l.email }}</a>{% endif %}
+    </div>
+
+    {% if l.propiedad_id %}
+    <div style="margin-top:0.4rem; font-size:0.85rem;">
+      🏠 Consulta sobre
+      <a href="/catalogo/{{ l.propiedad_id }}" target="_blank" style="color:var(--azul); font-weight:600;">
+        la propiedad #{{ l.propiedad_id }}
+      </a>
+      {% if l.agente_id and agentes_map.get(l.agente_id) %}
+      — publicada por <strong>{{ agentes_map.get(l.agente_id) }}</strong>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if l.mensaje %}
+    <div class="lead-mensaje">{{ l.mensaje }}</div>
+    {% endif %}
+
+    <form action="/panel/leads/{{ l.id }}/nota" method="post" style="margin-top:0.5rem;">
+      <label style="font-size:0.78rem; color:#888; font-weight:600; display:block; margin-bottom:0.2rem;">
+        Nota de contacto (seguimiento interno)
+      </label>
+      <textarea name="nota" rows="2" placeholder="Ej: Llamé el 15/07, interesado en visitar el sábado..."
+                style="width:100%; padding:0.5rem 0.6rem; border:1px solid #ddd; border-radius:8px; font-size:0.85rem; font-family:inherit; resize:vertical;">{{ l.nota or '' }}</textarea>
+      <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.8rem; margin-top:0.3rem;">
+        Guardar nota
+      </button>
+    </form>
+
+    {% if l.cita_fecha %}
+    <div class="lead-cita-badge">
+      📅 Cita agendada: {{ l.cita_fecha }}{% if l.cita_hora %} · {{ l.cita_hora }}{% endif %}{% if l.cita_lugar %} · {{ l.cita_lugar }}{% endif %}
+    </div>
+    {% endif %}
+
+    <form action="/panel/leads/{{ l.id }}/cita" method="post"
+          style="margin-top:0.5rem; display:flex; gap:0.4rem; align-items:flex-end; flex-wrap:wrap;">
+      <div>
+        <label style="font-size:0.78rem; color:#888; font-weight:600; display:block; margin-bottom:0.2rem;">Fecha</label>
+        <input type="date" name="cita_fecha" value="{{ l.cita_fecha or '' }}"
+               style="padding:0.4rem 0.6rem; border:1px solid #ddd; border-radius:8px; font-size:0.85rem;" />
+      </div>
+      <div>
+        <label style="font-size:0.78rem; color:#888; font-weight:600; display:block; margin-bottom:0.2rem;">Hora</label>
+        <input type="time" name="cita_hora" value="{{ l.cita_hora or '' }}"
+               style="padding:0.4rem 0.6rem; border:1px solid #ddd; border-radius:8px; font-size:0.85rem;" />
+      </div>
+      <div style="flex:1; min-width:160px;">
+        <label style="font-size:0.78rem; color:#888; font-weight:600; display:block; margin-bottom:0.2rem;">Lugar</label>
+        <input type="text" name="cita_lugar" value="{{ l.cita_lugar or '' }}" placeholder="Ej: En la propiedad, oficina..."
+               style="width:100%; padding:0.4rem 0.6rem; border:1px solid #ddd; border-radius:8px; font-size:0.85rem;" />
+      </div>
+      <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.4rem 0.8rem;">
+        Agendar cita
+      </button>
+    </form>
+
+    <div class="lead-acciones">
+      {% if l.telefono %}
+      <a href="https://wa.me/{{ l.telefono | replace('+','') | replace(' ','') | replace('-','') }}"
+         target="_blank" class="btn-wa">Responder por WhatsApp</a>
+      {% endif %}
+      <form action="/panel/leads/{{ l.id }}/leido" method="post">
+        <input type="hidden" name="leido" value="{{ 0 if l.leido else 1 }}" />
+        <button type="submit" class="{{ 'btn-noleido' if l.leido else 'btn-leido' }}">
+          {{ 'Marcar como no leído' if l.leido else 'Marcar como leído' }}
+        </button>
+      </form>
+      <form action="/panel/leads/{{ l.id }}/eliminar" method="post"
+            onsubmit="return confirm('¿Eliminar este contacto?');">
+        <button type="submit" class="btn-del">Eliminar</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <div class="card" style="text-align:center; color:#888;">
+    Aún no has recibido contactos desde tu página web.
+  </div>
+  {% endfor %}
+</div>
+</body>
+</html>

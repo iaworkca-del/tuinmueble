@@ -286,7 +286,7 @@ body.publico {
 }
 .pub-banner-badge {
   position: absolute;
-  top: 1rem; left: 1rem;
+  top: 3.2rem; right: 1rem;
   z-index: 2;
   background: var(--pub-secundario);
   color: #1a1a1a;
@@ -399,11 +399,82 @@ body.publico {
 .pub-footer {
   background: #0f1c28;
   color: #b8c1c9;
-  text-align: center;
-  padding: 2.2rem 1.5rem;
-  font-size: 0.85rem;
+  padding: 1.9rem 1.5rem 1.1rem;
+  font-size: 0.8rem;
 }
 .pub-footer a { color: var(--pub-secundario); text-decoration: none; }
+
+/* ── Footer de columnas (marca · enlaces · legal) ── */
+.pub-footer-grid {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1.6rem;
+  text-align: left;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.pub-footer-marca {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+.pub-footer-eslogan {
+  color: #8b98a5;
+  font-size: 0.82rem;
+  margin-bottom: 0.8rem;
+  line-height: 1.45;
+}
+.pub-footer-col h4 {
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.7rem;
+}
+.pub-footer-col ul { list-style: none; padding: 0; margin: 0; }
+.pub-footer-col ul li { margin-bottom: 0.4rem; }
+.pub-footer-col ul li a { color: #b8c1c9; font-size: 0.82rem; transition: color 0.2s; }
+.pub-footer-col ul li a:hover { color: var(--pub-secundario); }
+.pub-footer-social {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.pub-footer-social a {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  transition: background 0.2s, transform 0.2s, color 0.2s;
+}
+.pub-footer-social a:hover {
+  background: var(--pub-secundario);
+  color: #0f1c28;
+  transform: translateY(-2px);
+}
+.pub-footer-social svg { width: 15px; height: 15px; fill: currentColor; }
+.pub-footer-copy {
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+  padding-top: 1rem;
+  color: #7a8792;
+  font-size: 0.76rem;
+}
+@media (max-width: 720px) {
+  .pub-footer-grid { grid-template-columns: 1fr; gap: 1.4rem; text-align: center; }
+  .pub-footer-social { justify-content: center; }
+}
 
 /* ── Detalle propiedad ── */
 .pub-detalle-hero {

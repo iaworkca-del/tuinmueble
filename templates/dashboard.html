@@ -311,6 +311,10 @@
 
 <div class="dash-container">
 
+  {% if mensaje %}
+  <div class="card" style="border-left:4px solid #27ae60; margin-bottom:1rem;">{{ mensaje }}</div>
+  {% endif %}
+
   <!-- ── Métricas ── -->
   <div class="metricas-grid">
     <div class="metrica-card">
@@ -334,7 +338,7 @@
         <div class="metrica-label">Noticias</div>
       </div>
     </div>
-    {% if agente.es_admin %}
+    {% if agente.es_admin or (agente.es_principal and agente.cuenta_id) %}
     <div class="metrica-card">
       <div class="metrica-icon morado">👥</div>
       <div>
@@ -369,13 +373,36 @@
     </a>
 
     {% if agente.es_admin %}
-    <a href="/panel/agentes" class="acceso-card ac-agentes">
+    <a href="/panel/admin" class="acceso-card ac-agentes">
       <div class="ac-icon">👤</div>
-      <h3>Gestión de Agentes</h3>
-      <p>Usuarios registrados, roles, suscripciones y permisos</p>
+      <h3>Admin Cuentas</h3>
+      <p>Gestionar cuentas, agentes, suscripciones y permisos</p>
+      <span class="ac-arrow">Ir →</span>
+    </a>
+    {% elif agente.es_principal and agente.cuenta_id %}
+    <a href="/panel/mi-equipo" class="acceso-card ac-agentes">
+      <div class="ac-icon">👥</div>
+      <h3>Mi Equipo</h3>
+      <p>Gestiona los agentes de tu cuenta y sus permisos</p>
       <span class="ac-arrow">Ir →</span>
     </a>
     {% endif %}
+
+    {% if puede_ver_leads %}
+    <a href="/panel/leads" class="acceso-card ac-noticias">
+      <div class="ac-icon">📥</div>
+      <h3>Contactos / Leads{% if leads_no_leidos %} ({{ leads_no_leidos }}){% endif %}</h3>
+      <p>Clientes interesados capturados desde tu página web pública</p>
+      <span class="ac-arrow">Ir →</span>
+    </a>
+    {% endif %}
+
+    <a href="/panel/citas" class="acceso-card ac-agentes">
+      <div class="ac-icon">📅</div>
+      <h3>Agenda de citas{% if citas_hoy %} ({{ citas_hoy }} hoy){% endif %}</h3>
+      <p>Agenda visitas o reuniones con cualquier interesado, tenga o no un lead</p>
+      <span class="ac-arrow">Ir →</span>
+    </a>
 
     <a href="/" class="acceso-card ac-web" target="_blank">
       <div class="ac-icon">🌐</div>

@@ -1,0 +1,26 @@
+{% extends "public/base.html" %}
+{% block titulo %}{{ titulo }} — {{ branding.nombre_agencia }}{% endblock %}
+
+{% block contenido %}
+<section class="pub-seccion" style="padding-top:8rem; max-width:820px; margin:0 auto;">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Legal</div>
+    <h2>{{ titulo }}</h2>
+  </div>
+  <div style="line-height:1.8; color:#444; font-size:0.98rem;">
+    <p style="color:#888; font-size:0.85rem; margin-bottom:1.5rem;">
+      Última actualización: {{ anio }}
+    </p>
+    {% for bloque in contenido %}
+    <h3 style="color:var(--pub-primario); margin:1.6rem 0 0.6rem;">{{ bloque.titulo }}</h3>
+    <p>{{ bloque.texto }}</p>
+    {% endfor %}
+    <p style="margin-top:2rem; color:#888;">
+      Para cualquier consulta sobre este documento, escríbenos
+      {% if branding.email_agente %}a <a href="mailto:{{ branding.email_agente }}">{{ branding.email_agente }}</a>{% endif %}
+      {% if branding.telefono_agente %} o por WhatsApp al
+      <a href="https://wa.me/{{ branding.telefono_agente | replace('+','') | replace(' ','') }}">{{ branding.telefono_agente }}</a>{% endif %}.
+    </p>
+  </div>
+</section>
+{% endblock %}

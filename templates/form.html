@@ -61,8 +61,11 @@
             <option value="">Seleccionar...</option>
             <option value="Casa">Casa</option>
             <option value="Departamento / Apartamento">Departamento / Apartamento</option>
-            <option value="Terreno">Terreno</option>
             <option value="Penthouse">Penthouse</option>
+            <option value="Galpón">Galpón</option>
+            <option value="Local Comercial">Local Comercial</option>
+            <option value="Oficina">Oficina</option>
+            <option value="Terreno o Parcela">Terreno o Parcela</option>
           </select>
         </div>
         <div class="form-group">
@@ -91,7 +94,7 @@
         </div>
         <div class="form-group">
           <label for="precio">Precio (USD $)</label>
-          <input type="number" name="precio" id="precio" placeholder="Ej: 85000" min="0" step="500" required />
+          <input type="number" name="precio" id="precio" placeholder="Ej: 85000" min="0" step="any" required />
         </div>
         <div class="form-group full">
           <label for="direccion">Dirección / Sector (calle, urbanización, referencia)</label>
@@ -271,15 +274,46 @@
     el.textContent = this.files.length > 0 ? `${this.files.length} foto(s) seleccionada(s)` : '';
   });
 
-  // Ocultar campos según tipo de propiedad
-  document.getElementById('tipo_propiedad').addEventListener('change', function() {
-    const tipo = this.value;
-    const esTerrenoPuro = tipo === 'Terreno';
-    ['grp-habitaciones', 'grp-banos', 'grp-m2-const'].forEach(id => {
+  // Ajustar campos según tipo de propiedad
+  // Tipos sin habitaciones (comerciales y terreno)
+  const SIN_HABITACIONES = ['Galpón', 'Local Comercial', 'Oficina', 'Terreno o Parcela'];
+  // Terreno/Parcela: además, sin baños ni m² construidos
+  const SOLO_TERRENO = ['Terreno o Parcela'];
+
+  function aplicarReglasTipo() {
+    const tipo = document.getElementById('tipo_propiedad').value;
+    const esTerreno = SOLO_TERRENO.includes(tipo);
+    const sinHab = SIN_HABITACIONES.includes(tipo);
+
+    // Baños y m² construidos: se ocultan solo para Terreno/Parcela
+    ['grp-banos', 'grp-m2-const'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.style.display = esTerrenoPuro ? 'none' : '';
+      if (el) el.style.display = esTerreno ? 'none' : '';
     });
-  });
+
+    // Habitaciones: oculto en Terreno; deshabilitado en comerciales
+    const grpHab = document.getElementById('grp-habitaciones');
+    const inpHab = document.getElementById('habitaciones');
+    if (esTerreno) {
+      grpHab.style.display = 'none';
+    } else {
+      grpHab.style.display = '';
+    }
+    if (inpHab) {
+      inpHab.disabled = sinHab;
+      grpHab.style.opacity = (sinHab && !esTerreno) ? '0.5' : '1';
+      if (sinHab) {
+        inpHab.value = '';
+        inpHab.placeholder = 'No aplica';
+      } else {
+        inpHab.placeholder = 'Ej: 3';
+      }
+    }
+  }
+
+  document.getElementById('tipo_propiedad').addEventListener('change', aplicarReglasTipo);
+  // Aplicar al cargar (por si viene un tipo preseleccionado)
+  aplicarReglasTipo();
 
   // Loading al enviar
   document.getElementById('mainForm').addEventListener('submit', function() {

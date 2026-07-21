@@ -44,7 +44,7 @@ def _fit(path, max_w, max_h):
     return iw * escala, ih * escala
 
 
-def generar_pdf(datos: dict, descripcion: str, portada_path: str, extras_paths: list) -> str:
+def generar_pdf(datos: dict, descripcion: str, portada_path: str, extras_paths: list, agente: dict = None) -> str:
     nombre_archivo = f"ficha_{uuid.uuid4().hex}.pdf"
     ruta_salida = UPLOAD_DIR / nombre_archivo
 
@@ -61,7 +61,7 @@ def generar_pdf(datos: dict, descripcion: str, portada_path: str, extras_paths: 
     flow = []
 
     # ── Colores y nombre desde la marca ──
-    branding = get_branding()
+    branding = get_branding(agente)
     azul_hex = branding["color_primario"]
     dorado_hex = branding["color_secundario"]
     azul = colors.HexColor(azul_hex)

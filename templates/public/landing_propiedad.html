@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ datos.tipo_propiedad }} en {{ datos.operacion }} — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/css/public.css" />
+  <style>
+    :root {
+      --pub-primario: {{ branding.color_primario }};
+      --pub-secundario: {{ branding.color_secundario }};
+    }
+  </style>
+</head>
+<body class="publico">
+
+<nav class="pub-nav">
+  <a href="/cuenta/{{ slug }}" class="marca" style="display:inline-flex; align-items:center; gap:0.6rem;">
+    {% if logo_url %}<img src="{{ logo_url }}" alt="{{ branding.nombre_agencia }}" style="height:60px; width:auto;" />{% endif %}
+    <span style="color:#fff;">{{ branding.nombre_agencia }}<span style="color:var(--pub-secundario);">.</span></span>
+  </a>
+  <div class="links">
+    <a href="/cuenta/{{ slug }}#propiedades" class="link">Propiedades</a>
+    <a href="/cuenta/{{ slug }}#contacto" class="link">Contacto</a>
+    <a href="/cuenta/{{ slug }}" class="btn-acceso">← Volver</a>
+  </div>
+</nav>
+
+<section class="pub-detalle-hero" style="background-image:url('{{ portada_url or portada_compuesta_url }}');">
+  <div class="pub-detalle-hero-info">
+    <span class="pub-prop-badge">{{ datos.operacion }}</span>
+    <h1>{{ datos.tipo_propiedad }} — USD ${{ "{:,.0f}".format(datos.precio or 0) }}</h1>
+    <p>ID-{{ prop_id }} · {{ datos.direccion }}{% if datos.ciudad_estado %}, {{ datos.ciudad_estado }}{% endif %}</p>
+  </div>
+</section>
+
+<section class="pub-detalle-body">
+  <div class="pub-detalle-grid">
+    <div>
+      <div class="pub-detalle-metricas">
+        {% if datos.habitaciones %}
+        <div class="pub-detalle-metrica"><strong>{{ datos.habitaciones }}</strong><span>Habitaciones</span></div>
+        {% endif %}
+        {% if datos.banos %}
+        <div class="pub-detalle-metrica"><strong>{{ datos.banos }}</strong><span>Baños</span></div>
+        {% endif %}
+        {% if datos.metros_construidos %}
+        <div class="pub-detalle-metrica"><strong>{{ datos.metros_construidos }} m²</strong><span>Construidos</span></div>
+        {% endif %}
+        {% if datos.estacionamientos %}
+        <div class="pub-detalle-metrica"><strong>{{ datos.estacionamientos }}</strong><span>Estacionamiento</span></div>
+        {% endif %}
+      </div>
+
+      <h3 style="color:var(--pub-primario); margin-bottom:0.6rem;">Descripción</h3>
+      <p style="line-height:1.7; color:#444; white-space:pre-line;">{{ descripcion }}</p>
+
+      {% if extras_urls %}
+      <h3 style="color:var(--pub-primario); margin:2rem 0 0.6rem;">Galería</h3>
+      <div class="pub-detalle-galeria">
+        {% for u in extras_urls %}
+        <img src="{{ u }}" alt="Foto de la propiedad" />
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="pub-contacto-card">
+      <h3>¿Te interesa esta propiedad?</h3>
+      <p style="color:#666; font-size:0.9rem;">Propiedad <strong>ID-{{ prop_id }}</strong></p>
+      {% set tel = datos.telefono_agente or branding.telefono_agente %}
+      {% set wa_texto = "Hola, estoy interesado/a en la Propiedad ID-" ~ prop_id ~ " en " ~ datos.direccion ~ (", " ~ datos.ciudad_estado if datos.ciudad_estado else "") ~ ". ¿Me pueden dar más información?" %}
+      {% if tel %}
+      <a href="https://wa.me/{{ tel | replace('+','') | replace(' ','') | replace('-','') }}?text={{ wa_texto | urlencode }}"
+         target="_blank" class="pub-btn pub-btn-dorado">💬 Escribir por WhatsApp</a>
+      {% endif %}
+      {% if datos.email_agente or branding.email_agente %}
+      <a href="mailto:{{ datos.email_agente or branding.email_agente }}?subject=Interés en propiedad ID-{{ prop_id }}"
+         class="pub-btn pub-btn-outline" style="color:var(--pub-primario); border-color:var(--pub-primario);">✉ Enviar correo</a>
+      {% endif %}
+      <a href="/cuenta/{{ slug }}#contacto" class="pub-btn pub-btn-outline" style="color:var(--pub-primario); border-color:var(--pub-primario);">📝 Dejar mis datos</a>
+      <a href="/cuenta/{{ slug }}" class="pub-btn pub-btn-outline" style="color:var(--pub-primario); border-color:var(--pub-primario);">← Volver a {{ branding.nombre_agencia }}</a>
+    </div>
+  </div>
+</section>
+
+{% set footer_enlaces = [
+  {'texto': 'Propiedades', 'href': '/cuenta/' ~ slug ~ '#propiedades'},
+  {'texto': 'Contacto', 'href': '/cuenta/' ~ slug ~ '#contacto'}
+] %}
+{% include 'public/_footer.html' %}
+
+</body>
+</html>

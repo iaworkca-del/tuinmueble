@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Equipo — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .equipo-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border-left: 4px solid var(--dorado);
+    }
+    .equipo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .equipo-header h3 { margin: 0; color: var(--azul); font-size: 1rem; }
+    .badge-rol {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-principal { background: #27ae60; color: #fff; }
+    .badge-basico { background: #95a5a6; color: #fff; }
+    .permisos-form {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 0.8rem;
+      margin-top: 0.6rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      align-items: center;
+    }
+    .permisos-form label {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .permisos-form input[type="checkbox"] {
+      width: auto;
+    }
+    .acciones-agente {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia }}</div>
+    <p>Mi Equipo — {{ cuenta.nombre }}</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">Dashboard</a>
+    <a href="/panel/crear" class="btn-secondary" style="font-size:0.85rem;">+ Nueva propiedad</a>
+    <a href="/configuracion" class="btn-secondary" style="font-size:0.85rem;">Configuracion</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
+</header>
+
+<div class="container">
+
+  {% if mensaje %}
+  <div class="card" style="border-left:4px solid #27ae60;">{{ mensaje }}</div>
+  {% endif %}
+  {% if error %}
+  <div class="card" style="border-left:4px solid #c0392b;">{{ error }}</div>
+  {% endif %}
+
+  {% if landing_enabled %}
+  <div class="card" style="border-left:4px solid #2980b9;">
+    <h2>🌐 Mi página web pública</h2>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:0.8rem;">
+      Tu inmobiliaria tiene una página web propia con tus propiedades y un formulario de contacto
+      que captura clientes interesados (leads).
+    </p>
+    <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:1rem;">
+      <a href="/panel/leads" class="btn-secondary" style="font-size:0.85rem;">
+        📥 Ver contactos recibidos{% if leads_no_leidos %} ({{ leads_no_leidos }} nuevos){% endif %}
+      </a>
+      {% if cuenta.landing_activa %}
+      <a href="/cuenta/{{ cuenta.slug }}" target="_blank" class="btn-secondary"
+         style="font-size:0.85rem; background:#27ae60; color:#fff;">🔗 Ver mi página</a>
+      {% endif %}
+    </div>
+    <form action="/panel/mi-equipo/landing" method="post"
+          style="display:flex; gap:0.6rem; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex:1; min-width:220px;">
+        <label style="font-size:0.82rem; font-weight:600; color:#555; display:block; margin-bottom:0.3rem;">
+          Dirección de tu página (slug)
+        </label>
+        <div style="display:flex; align-items:center; gap:0.3rem;">
+          <span style="font-size:0.85rem; color:#888;">.../cuenta/</span>
+          <input type="text" name="slug" value="{{ cuenta.slug }}" required
+                 style="flex:1; padding:0.5rem 0.7rem; border:1px solid #ccc; border-radius:6px;" />
+        </div>
+      </div>
+      <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.85rem; padding-bottom:0.5rem;">
+        <input type="checkbox" name="landing_activa" value="1" {{ 'checked' if cuenta.landing_activa }} style="width:auto;" />
+        Página activa
+      </label>
+      <button type="submit" class="btn-primary" style="width:auto; padding:0.55rem 1.3rem;">Guardar</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Agregar agente</h2>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:0.8rem;">
+      {{ cuenta.nombre }} — {{ agentes_cuenta|length }}/{{ cuenta.max_agentes }} agentes
+    </p>
+    {% if agentes_cuenta|length < cuenta.max_agentes %}
+    <form action="/panel/mi-equipo/agente" method="post" class="form-grid">
+      <div class="form-group">
+        <label for="usuario">Usuario</label>
+        <input type="text" name="usuario" id="usuario" required />
+      </div>
+      <div class="form-group">
+        <label for="nombre_completo">Nombre completo</label>
+        <input type="text" name="nombre_completo" id="nombre_completo" required
+               placeholder="Nombre y apellido" />
+      </div>
+      <div class="form-group">
+        <label for="telefono_movil">Numero de movil</label>
+        <input type="tel" name="telefono_movil" id="telefono_movil" required
+               placeholder="+58 412 1234567" />
+      </div>
+      <div class="form-group">
+        <label for="email">Correo electronico</label>
+        <input type="email" name="email" id="email" required
+               placeholder="agente@correo.com" />
+      </div>
+      <div class="form-group">
+        <label for="password">Contrasena</label>
+        <input type="password" name="password" id="password" required minlength="6" />
+      </div>
+      <div class="form-group full">
+        <button type="submit" class="btn-primary" style="width:auto; padding:0.7rem 2rem;">Crear agente</button>
+      </div>
+    </form>
+    {% else %}
+    <p style="color:#c0392b; font-size:0.85rem;">Has alcanzado el limite de agentes para tu cuenta.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Agentes del equipo</h2>
+
+    {% for a in agentes_cuenta %}
+    <div class="equipo-card">
+      <div class="equipo-header">
+        <div>
+          <h3>{{ a.nombre_completo or a.usuario }}</h3>
+          <small style="color:#888;">{{ a.usuario }}</small>
+          {% if a.es_principal %}
+            <span class="badge-rol badge-principal">Principal</span>
+          {% else %}
+            <span class="badge-rol badge-basico">Basico</span>
+          {% endif %}
+          <div style="font-size:0.78rem; color:#777; margin-top:0.2rem;">
+            📱 {{ a.telefono_movil or 'Sin movil' }} &nbsp;·&nbsp; ✉ {{ a.email or 'Sin correo' }}
+          </div>
+        </div>
+        <div>
+          {% if a.activo %}
+            <span style="color:#27ae60; font-size:0.85rem; font-weight:600;">Activo</span>
+          {% else %}
+            <span style="color:#c0392b; font-size:0.85rem; font-weight:600;">Inactivo</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if not a.es_principal %}
+      {% set permisos = a.permisos | default('{}') %}
+      {% if permisos is string %}
+        {% set perm = {} %}
+        {% if permisos != '{}' %}
+          {% set perm = permisos | tojson | default('{}') %}
+        {% endif %}
+      {% else %}
+        {% set perm = permisos %}
+      {% endif %}
+
+      <form action="/panel/mi-equipo/agente/{{ a.id }}/permisos" method="post" class="permisos-form">
+        <label>
+          <input type="checkbox" name="crear_propiedad" value="1"
+                 {{ 'checked' if '"crear_propiedad": true' in (a.permisos or '') }} />
+          Crear propiedad
+        </label>
+        <label>
+          <input type="checkbox" name="modificar_propiedad" value="1"
+                 {{ 'checked' if '"modificar_propiedad": true' in (a.permisos or '') }} />
+          Modificar propiedad
+        </label>
+        <label>
+          <input type="checkbox" name="eliminar_propiedad" value="1"
+                 {{ 'checked' if '"eliminar_propiedad": true' in (a.permisos or '') }} />
+          Eliminar propiedad
+        </label>
+        <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.8rem;">
+          Guardar permisos
+        </button>
+      </form>
+
+      <div class="acciones-agente">
+        <form action="/panel/mi-equipo/agente/{{ a.id }}/estado" method="post">
+          <input type="hidden" name="activo" value="{{ 0 if a.activo else 1 }}" />
+          <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.7rem;">
+            {{ "Desactivar" if a.activo else "Activar" }}
+          </button>
+        </form>
+        <form action="/panel/mi-equipo/agente/{{ a.id }}/eliminar" method="post"
+              onsubmit="return confirm('Eliminar este agente?');">
+          <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.7rem; color:#c0392b;">
+            Eliminar
+          </button>
+        </form>
+      </div>
+
+      <details style="margin-top:0.5rem;">
+        <summary style="cursor:pointer; font-size:0.8rem; font-weight:600; color:#555;">
+          Editar datos personales / contacto
+        </summary>
+        <form action="/panel/mi-equipo/agente/{{ a.id }}/datos" method="post"
+              style="margin-top:0.5rem; display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
+          <label style="font-size:0.8rem; color:#555; font-weight:600;">Nombre</label>
+          <input type="text" name="nombre_completo" value="{{ a.nombre_completo or '' }}"
+                 style="flex:1; min-width:140px; padding:0.4rem 0.6rem; border:1px solid #ccc; border-radius:6px; font-size:0.82rem;" />
+          <label style="font-size:0.8rem; color:#555; font-weight:600;">Móvil</label>
+          <input type="tel" name="telefono_movil" value="{{ a.telefono_movil or '' }}"
+                 placeholder="+58 412 1234567"
+                 style="flex:1; min-width:140px; padding:0.4rem 0.6rem; border:1px solid #ccc; border-radius:6px; font-size:0.82rem;" />
+          <label style="font-size:0.8rem; color:#555; font-weight:600;">Correo</label>
+          <input type="email" name="email" value="{{ a.email or '' }}"
+                 placeholder="agente@correo.com"
+                 style="flex:1; min-width:160px; padding:0.4rem 0.6rem; border:1px solid #ccc; border-radius:6px; font-size:0.82rem;" />
+          <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.35rem 0.8rem;">
+            Guardar datos
+          </button>
+        </form>
+      </details>
+
+      <form action="/panel/mi-equipo/agente/{{ a.id }}/password" method="post"
+            style="margin-top:0.5rem; display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;"
+            onsubmit="return confirm('Restablecer la contraseña de {{ a.usuario }}?');">
+        <label style="font-size:0.8rem; color:#555; font-weight:600;">Nueva contraseña:</label>
+        <input type="text" name="password_nueva" required minlength="6"
+               placeholder="mínimo 6 caracteres"
+               style="flex:1; min-width:160px; padding:0.4rem 0.6rem; border:1px solid #ccc; border-radius:6px; font-size:0.82rem;" />
+        <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.35rem 0.8rem; background:#c0392b; color:#fff;">
+          Restablecer
+        </button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if not agentes_cuenta %}
+    <p style="color:#888; text-align:center;">No hay agentes en este equipo.</p>
+    {% endif %}
+  </div>
+
+</div>
+</body>
+</html>

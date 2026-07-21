@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda de citas — {{ branding.nombre_agencia }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .agenda-form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem;
+    }
+    .agenda-form-grid .campo-full { grid-column: 1 / -1; }
+    .agenda-form-grid label {
+      font-size: 0.78rem; color: #888; font-weight: 600; display: block; margin-bottom: 0.25rem;
+    }
+    .agenda-form-grid input {
+      width: 100%; padding: 0.5rem 0.7rem; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 0.88rem; box-sizing: border-box;
+    }
+    .slots-titulo { font-size: 0.82rem; color: #555; font-weight: 600; margin: 0.3rem 0 0.5rem; }
+    .slots-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+      gap: 0.5rem; margin-bottom: 1rem;
+    }
+    .slot-btn {
+      position: relative; padding: 0.5rem 0.3rem; border-radius: 8px; border: 1.5px solid #ddd;
+      background: #fff; font-size: 0.82rem; font-weight: 600; color: #333; cursor: pointer;
+      text-align: center; transition: all 0.15s ease;
+    }
+    .slot-btn:hover:not(.slot-ocupado) { border-color: var(--azul, #1a3a5c); background: #f2f6fb; }
+    .slot-btn.slot-elegido {
+      background: var(--azul, #1a3a5c); border-color: var(--azul, #1a3a5c); color: #fff;
+    }
+    .slot-btn.slot-ocupado {
+      background: #fdecea; border-color: #f2c2bd; color: #c0392b; cursor: not-allowed;
+    }
+    .slot-sticker {
+      display: block; font-size: 0.62rem; font-weight: 700; margin-top: 0.15rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .slots-vacio { font-size: 0.82rem; color: #999; padding: 0.4rem 0; }
+    .cita-item {
+      padding: 0.7rem 0; border-top: 1px solid #eee;
+    }
+    .cita-item-top {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .cita-hora-badge {
+      display: inline-block; background: #eaf2fb; color: #1a3a5c; font-weight: 700;
+      font-size: 0.78rem; padding: 0.15rem 0.5rem; border-radius: 6px; margin-right: 0.3rem;
+    }
+    .cita-acciones { display: flex; gap: 0.4rem; }
+    .cita-editar summary {
+      cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--azul, #1a3a5c);
+      list-style: none;
+    }
+    .cita-editar summary::-webkit-details-marker { display: none; }
+    .cita-editar { margin-top: 0.5rem; }
+    .cita-editar[open] summary { margin-bottom: 0.6rem; }
+  </style>
+</head>
+<body>
+<header style="justify-content:space-between;">
+  <div>
+    <div class="logo-text">{{ branding.nombre_agencia }}</div>
+    <p>Agenda de citas</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">📊 Dashboard</a>
+    <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>
+  </div>
+</header>
+
+<div class="container">
+  {% if mensaje %}
+  <div class="card" style="border-left:4px solid #27ae60;">{{ mensaje }}</div>
+  {% endif %}
+  {% if error %}
+  <div class="card" style="border-left:4px solid #c0392b; background:#fdecea; color:#c0392b;">{{ error }}</div>
+  {% endif %}
+
+  <div class="card">
+    <h2>📅 Agenda de citas</h2>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:0.8rem;">
+      Agenda una visita o reunión con cualquier interesado, tenga o no un lead capturado desde tu página web.
+      Elige la fecha y luego un horario libre entre 7:00 am y 8:00 pm.
+    </p>
+
+    <form action="/panel/citas" method="post" class="form-cita" data-cita-id="">
+      <div class="agenda-form-grid">
+        <div>
+          <label>Nombre del interesado</label>
+          <input type="text" name="nombre" class="campo-nombre" required />
+        </div>
+        <div>
+          <label>Teléfono</label>
+          <input type="tel" name="telefono" />
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="date" name="fecha" class="campo-fecha" required />
+        </div>
+        <div>
+          <label>Lugar</label>
+          <input type="text" name="lugar" placeholder="Ej: En la propiedad, oficina..." />
+        </div>
+      </div>
+
+      <div class="slots-contenedor" style="display:none;">
+        <p class="slots-titulo">Horarios del día (7:00 am – 8:00 pm):</p>
+        <div class="slots-grid"></div>
+      </div>
+      <input type="hidden" name="hora" class="campo-hora" />
+
+      <button type="submit" class="btn-secondary campo-submit" style="font-size:0.85rem; padding:0.5rem 1.2rem;" disabled>
+        Agendar
+      </button>
+    </form>
+
+    <div style="margin-top:0.5rem;">
+      {% if citas %}
+      {% for c in citas %}
+      <div class="cita-item">
+        <div class="cita-item-top">
+          <div style="font-size:0.85rem;">
+            <span class="cita-hora-badge">{{ c.hora or 'Sin hora' }}</span>
+            <strong>{{ c.nombre }}</strong>
+            {% if c.telefono %} · 📱 {{ c.telefono }}{% endif %}
+            <div style="color:#666; margin-top:0.15rem;">
+              📅 {{ c.fecha }}{% if c.lugar %} · {{ c.lugar }}{% endif %}
+            </div>
+          </div>
+          <div class="cita-acciones">
+            <form action="/panel/citas/{{ c.id }}/eliminar" method="post"
+                  onsubmit="return confirm('¿Eliminar esta cita?');">
+              <button type="submit" class="btn-secondary" style="font-size:0.78rem; padding:0.3rem 0.7rem; color:#c0392b;">
+                Eliminar
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <details class="cita-editar">
+          <summary>✏️ Editar / Reagendar</summary>
+          <form action="/panel/citas/{{ c.id }}/editar" method="post" class="form-cita" data-cita-id="{{ c.id }}">
+            <div class="agenda-form-grid">
+              <div>
+                <label>Nombre del interesado</label>
+                <input type="text" name="nombre" class="campo-nombre" value="{{ c.nombre }}" required />
+              </div>
+              <div>
+                <label>Teléfono</label>
+                <input type="tel" name="telefono" value="{{ c.telefono or '' }}" />
+              </div>
+              <div>
+                <label>Fecha</label>
+                <input type="date" name="fecha" class="campo-fecha" value="{{ c.fecha }}" required />
+              </div>
+              <div>
+                <label>Lugar</label>
+                <input type="text" name="lugar" value="{{ c.lugar or '' }}" placeholder="Ej: En la propiedad, oficina..." />
+              </div>
+            </div>
+
+            <div class="slots-contenedor" style="display:none;">
+              <p class="slots-titulo">Horarios del día (7:00 am – 8:00 pm):</p>
+              <div class="slots-grid"></div>
+            </div>
+            <input type="hidden" name="hora" class="campo-hora" value="{{ c.hora or '' }}" />
+
+            <button type="submit" class="btn-secondary campo-submit" style="font-size:0.82rem; padding:0.45rem 1rem;">
+              Guardar cambios
+            </button>
+          </form>
+        </details>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p style="color:#999; font-size:0.85rem; text-align:center; padding:0.5rem 0;">No tienes citas agendadas.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  function initFormCita(form) {
+    const citaId = form.dataset.citaId ? parseInt(form.dataset.citaId, 10) : null;
+    const inputFecha = form.querySelector('.campo-fecha');
+    const inputHora = form.querySelector('.campo-hora');
+    const inputNombre = form.querySelector('.campo-nombre');
+    const slotsContenedor = form.querySelector('.slots-contenedor');
+    const slotsGrid = form.querySelector('.slots-grid');
+    const btnSubmit = form.querySelector('.campo-submit');
+    inputFecha.min = hoy;
+
+    function actualizarBoton() {
+      btnSubmit.disabled = !(inputFecha.value && inputHora.value && inputNombre.value.trim());
+    }
+
+    async function cargarHorarios(preseleccionar) {
+      slotsGrid.innerHTML = '';
+      if (!preseleccionar) inputHora.value = '';
+      actualizarBoton();
+      if (!inputFecha.value) {
+        slotsContenedor.style.display = 'none';
+        return;
+      }
+      slotsContenedor.style.display = 'block';
+      slotsGrid.innerHTML = '<p class="slots-vacio">Cargando horarios...</p>';
+      try {
+        let url = '/panel/citas/horarios?fecha=' + encodeURIComponent(inputFecha.value);
+        if (citaId) url += '&excluir_id=' + citaId;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        slotsGrid.innerHTML = '';
+        (data.slots || []).forEach(function (s) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'slot-btn' + (s.ocupado ? ' slot-ocupado' : '');
+          btn.innerHTML = s.hora + (s.ocupado
+            ? '<span class="slot-sticker">🔒 ' + (s.agente_nombre || 'Ocupado') + '</span>'
+            : '');
+          if (s.ocupado) {
+            btn.disabled = true;
+          } else {
+            if (preseleccionar && s.hora === inputHora.value) {
+              btn.classList.add('slot-elegido');
+            }
+            btn.addEventListener('click', function () {
+              slotsGrid.querySelectorAll('.slot-btn').forEach(function (b) { b.classList.remove('slot-elegido'); });
+              btn.classList.add('slot-elegido');
+              inputHora.value = s.hora;
+              actualizarBoton();
+            });
+          }
+          slotsGrid.appendChild(btn);
+        });
+      } catch (e) {
+        slotsGrid.innerHTML = '<p class="slots-vacio">No se pudieron cargar los horarios.</p>';
+      }
+    }
+
+    inputFecha.addEventListener('change', function () { cargarHorarios(false); });
+    inputNombre.addEventListener('input', actualizarBoton);
+    form._cargarHorariosInicial = function () { cargarHorarios(true); };
+  }
+
+  document.querySelectorAll('.form-cita').forEach(initFormCita);
+
+  // Cargar los horarios de un formulario de edición recién al abrir su <details>
+  // (evita pedir los horarios de todas las citas de la lista de una sola vez),
+  // preservando la hora ya agendada como preseleccionada.
+  document.querySelectorAll('.cita-editar').forEach(function (det) {
+    det.addEventListener('toggle', function () {
+      if (det.open) {
+        const form = det.querySelector('.form-cita');
+        if (form && !form._yaCargado) {
+          form._yaCargado = true;
+          form._cargarHorariosInicial();
+        }
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

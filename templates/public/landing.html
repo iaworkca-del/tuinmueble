@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ branding.nombre_agencia }} — {{ branding.eslogan }}</title>
+  <link rel="stylesheet" href="/static/css/public.css" />
+  <style>
+    :root {
+      --pub-primario: {{ branding.color_primario }};
+      --pub-secundario: {{ branding.color_secundario }};
+    }
+    .land-form {
+      max-width: 640px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .land-form .full { grid-column: 1 / -1; }
+    .land-form label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--pub-primario);
+    }
+    .land-form input, .land-form textarea {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid #d5d5d5;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    .land-form textarea { resize: vertical; min-height: 110px; }
+    .land-aviso {
+      max-width: 640px;
+      margin: 0 auto 1.2rem;
+      padding: 0.9rem 1.2rem;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+    .land-aviso.ok  { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+    .land-aviso.err { background: #fdecea; color: #c0392b; border: 1px solid #f5b7b1; }
+    .land-interesa {
+      margin: 0.4rem 1rem 1rem;
+      padding: 0.55rem 0.8rem;
+      border: 1px solid var(--pub-secundario);
+      background: transparent;
+      color: var(--pub-primario);
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .land-interesa:hover { background: var(--pub-secundario); color: #1a1a1a; }
+    @media (max-width: 560px) {
+      .land-form { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="publico">
+
+<nav class="pub-nav">
+  <a href="#top" class="marca" style="display:inline-flex; align-items:center; gap:0.6rem;">
+    {% if logo_url %}<img src="{{ logo_url }}" alt="{{ branding.nombre_agencia }}" style="height:60px; width:auto;" />{% endif %}
+    <span style="color:#fff;">{{ branding.nombre_agencia }}<span style="color:var(--pub-secundario);">.</span></span>
+  </a>
+  <div class="links">
+    <a href="#propiedades" class="link">Propiedades</a>
+    <a href="#contacto" class="link">Contacto</a>
+    {% if branding.telefono_agente %}
+    <a href="https://wa.me/{{ branding.telefono_agente | replace('+','') | replace(' ','') }}" class="btn-acceso">WhatsApp</a>
+    {% endif %}
+  </div>
+</nav>
+
+<span id="top"></span>
+<section class="pub-hero">
+  <div class="pub-hero-bg" style="background-image:url('{{ branding.fondo if branding.fondo else (logo_url or '/static/logo.png') }}');"></div>
+  <div class="pub-hero-overlay"></div>
+  <div class="pub-hero-contenido">
+    {% if logo_url %}
+    <img src="{{ logo_url }}" alt="{{ branding.nombre_agencia }}" style="max-height:90px; margin-bottom:1.2rem;" />
+    {% endif %}
+    <h1>{{ branding.nombre_agencia }}</h1>
+    <p>{{ branding.eslogan }}</p>
+    <div class="pub-hero-ctas">
+      <a href="#propiedades" class="pub-btn pub-btn-dorado">Ver propiedades</a>
+      <a href="#contacto" class="pub-btn pub-btn-outline">Contáctanos</a>
+    </div>
+  </div>
+</section>
+
+<section class="pub-seccion">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Sobre nosotros</div>
+    <h2>Tu aliado en bienes raíces</h2>
+    <p>{{ branding.descripcion_agencia }}</p>
+  </div>
+</section>
+
+<section class="pub-seccion gris">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Lo que hacemos</div>
+    <h2>Nuestros servicios</h2>
+  </div>
+  <div class="pub-servicios-grid">
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">🏠</div>
+      <h3>{{ branding.servicio_1_titulo }}</h3>
+      <p>{{ branding.servicio_1_desc }}</p>
+    </div>
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">🔑</div>
+      <h3>{{ branding.servicio_2_titulo }}</h3>
+      <p>{{ branding.servicio_2_desc }}</p>
+    </div>
+    <div class="pub-servicio-card">
+      <div class="pub-servicio-icono">📊</div>
+      <h3>{{ branding.servicio_3_titulo }}</h3>
+      <p>{{ branding.servicio_3_desc }}</p>
+    </div>
+  </div>
+</section>
+
+<section id="propiedades" class="pub-seccion">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Catálogo</div>
+    <h2>Nuestras propiedades</h2>
+  </div>
+  <div class="pub-catalogo-grid">
+    {% for p in propiedades %}
+    <div class="pub-prop-card" style="display:flex; flex-direction:column;">
+      <a href="/cuenta/{{ slug }}/propiedad/{{ p.id }}" style="color:inherit; text-decoration:none;">
+        {% if p.portada %}
+        <img src="{{ p.portada }}" class="pub-prop-img" alt="{{ p.tipo_propiedad }}" />
+        {% else %}
+        <div class="pub-prop-img"></div>
+        {% endif %}
+        <div class="pub-prop-body">
+          <span class="pub-prop-badge">{{ p.operacion }}</span>
+          <div class="pub-prop-precio">USD ${{ "{:,.0f}".format(p.precio or 0) }}</div>
+          <div class="pub-prop-ubic">{{ p.tipo_propiedad }} · {{ p.direccion }}{% if p.ciudad_estado %}, {{ p.ciudad_estado }}{% endif %}</div>
+        </div>
+      </a>
+      <button type="button" class="land-interesa"
+              data-id="{{ p.id }}"
+              data-desc="{{ p.tipo_propiedad }} en {{ p.operacion }} · {{ p.direccion }}">
+        Me interesa esta propiedad
+      </button>
+    </div>
+    {% else %}
+    <div class="pub-prop-vacio">Muy pronto publicaremos nuestras propiedades disponibles.</div>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="contacto" class="pub-seccion gris">
+  <div class="pub-seccion-tit">
+    <div class="eyebrow">Contacto</div>
+    <h2>Déjanos tus datos</h2>
+    <p>Completa el formulario y un asesor de {{ branding.nombre_agencia }} te contactará.</p>
+  </div>
+
+  {% if enviado %}
+  <div class="land-aviso ok">✅ ¡Gracias! Hemos recibido tus datos y te contactaremos pronto.</div>
+  {% endif %}
+  {% if error %}
+  <div class="land-aviso err">⚠ {{ error }}</div>
+  {% endif %}
+
+  <div id="land-chip" class="land-aviso" style="display:none; background:#eef4fb; color:var(--pub-primario); border:1px solid #cfe0f2;">
+    Consulta sobre: <strong id="land-chip-desc"></strong>
+    <a href="#" id="land-chip-quitar" style="margin-left:0.6rem; font-size:0.8rem;">quitar</a>
+  </div>
+
+  <form action="/cuenta/{{ slug }}/contacto" method="post" class="land-form">
+    <input type="hidden" name="propiedad_id" id="propiedad_id" value="" />
+    <div>
+      <label for="nombre">Nombre y apellido *</label>
+      <input type="text" name="nombre" id="nombre" required />
+    </div>
+    <div>
+      <label for="telefono">Teléfono / WhatsApp</label>
+      <input type="tel" name="telefono" id="telefono" placeholder="+58 412 1234567" />
+    </div>
+    <div class="full">
+      <label for="email">Correo electrónico</label>
+      <input type="email" name="email" id="email" placeholder="tucorreo@ejemplo.com" />
+    </div>
+    <div class="full">
+      <label for="mensaje">¿Qué estás buscando?</label>
+      <textarea name="mensaje" id="mensaje" placeholder="Cuéntanos qué tipo de propiedad te interesa, zona, presupuesto..."></textarea>
+    </div>
+    <div class="full" style="text-align:center;">
+      <p style="font-size:0.78rem; color:#888; margin-bottom:0.8rem;">* Indica al menos un correo o un teléfono para poder responderte.</p>
+      <button type="submit" class="pub-btn pub-btn-dorado" style="color:#1a1a1a;">Enviar mis datos</button>
+    </div>
+  </form>
+</section>
+
+{% set footer_enlaces = [
+  {'texto': 'Propiedades', 'href': '#propiedades'},
+  {'texto': 'Contacto', 'href': '#contacto'}
+] %}
+{% include 'public/_footer.html' %}
+
+<script>
+  (function () {
+    var hidden = document.getElementById('propiedad_id');
+    var chip = document.getElementById('land-chip');
+    var chipDesc = document.getElementById('land-chip-desc');
+    var mensaje = document.getElementById('mensaje');
+
+    document.querySelectorAll('.land-interesa').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-id');
+        var desc = btn.getAttribute('data-desc');
+        hidden.value = id;
+        chipDesc.textContent = desc;
+        chip.style.display = 'block';
+        if (mensaje && !mensaje.value.trim()) {
+          mensaje.value = 'Estoy interesado/a en: ' + desc;
+        }
+        document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    var quitar = document.getElementById('land-chip-quitar');
+    if (quitar) {
+      quitar.addEventListener('click', function (e) {
+        e.preventDefault();
+        hidden.value = '';
+        chip.style.display = 'none';
+      });
+    }
+  })();
+</script>
+</body>
+</html>

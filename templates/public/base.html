@@ -16,7 +16,10 @@
 <body class="publico">
 
 <nav class="pub-nav">
-  <a href="/" class="marca">{{ branding.nombre_agencia }}<span>.</span></a>
+  <a href="/" class="marca" style="display:inline-flex; align-items:center; gap:0.6rem;">
+    {% if logo_url %}<img src="{{ logo_url }}" alt="{{ branding.nombre_agencia }}" style="height:60px; width:auto;" />{% endif %}
+    <span style="color:#fff;">{{ branding.nombre_agencia }}<span style="color:var(--pub-secundario);">.</span></span>
+  </a>
   <div class="links">
     <a href="/" class="link">Inicio</a>
     <a href="/servicios" class="link">Servicios</a>
@@ -27,13 +30,12 @@
 
 {% block contenido %}{% endblock %}
 
-<footer class="pub-footer">
-  <p>&copy; {{ anio }} {{ branding.nombre_agencia }}. Todos los derechos reservados.</p>
-  {% if branding.telefono_agente %}
-  <p>Contáctanos: <a href="https://wa.me/{{ branding.telefono_agente | replace('+','') | replace(' ','') }}">{{ branding.telefono_agente }}</a>
-  {% if branding.email_agente %} · {{ branding.email_agente }}{% endif %}</p>
-  {% endif %}
-</footer>
+{% set footer_enlaces = [
+  {'texto': 'Servicios', 'href': '/servicios'},
+  {'texto': 'Propiedades', 'href': '/catalogo'},
+  {'texto': 'Sobre Nosotros', 'href': '/#nosotros'}
+] %}
+{% include 'public/_footer.html' %}
 
 <script src="/static/js/parallax.js"></script>
 {% block scripts_extra %}{% endblock %}
