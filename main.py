@@ -177,12 +177,15 @@ def _descarga(static_url: str) -> str:
 async def debug_headers(request: Request):
     """TEMPORAL: diagnosticar el esquema http/https detras del proxy. Quitar luego."""
     import sys
+    import uvicorn as _uvicorn
     headers = {k: v for k, v in request.headers.items() if k.lower() != "cookie"}
     return JSONResponse({
+        "marca_de_version": "fafa407-proxyheaders-v2",
         "scheme_visto_por_la_app": request.url.scheme,
         "base_url": str(request.base_url),
         "client": str(request.scope.get("client")),
         "python_version": sys.version,
+        "uvicorn_version": _uvicorn.__version__,
         "headers": headers,
     })
 
