@@ -14,7 +14,7 @@ from reportlab.platypus import (
 )
 
 BASE_DIR = Path(__file__).parent
-UPLOAD_DIR = BASE_DIR / "static" / "uploads"
+UPLOAD_DIR = BASE_DIR / "data" / "uploads"
 
 AZUL = colors.HexColor("#1a3a5c")
 DORADO = colors.HexColor("#c8a45a")

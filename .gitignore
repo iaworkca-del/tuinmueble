@@ -13,3 +13,8 @@ data/propiedades_backup_*.db
 data/branding.json
 data/branding_backup_*.json
 data/branding_cuenta_*.json
+data/uploads/
+data/logos/
+data/fondos/
+data/plantillas_custom/
+data/noticias/

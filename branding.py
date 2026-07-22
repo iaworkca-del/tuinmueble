@@ -8,9 +8,13 @@ BRANDING_FILE = DATA_DIR / "branding.json"
 LOGO_PATH = BASE_DIR / "static" / "logo.png"
 FONDO_PATH = BASE_DIR / "static" / "fondo.jpg"
 
-LOGOS_DIR = BASE_DIR / "static" / "logos"
-FONDOS_DIR = BASE_DIR / "static" / "fondos"
-PLANTILLAS_DIR = BASE_DIR / "static" / "plantillas_custom"
+# Estas carpetas viven dentro de data/ (el Volume persistente de Railway),
+# NO en static/, porque son contenido subido por usuarios en producción.
+# Si vivieran en static/, cada deploy las resetearía al estado de git y se
+# perderían los logos/fondos/plantillas subidos directamente en producción.
+LOGOS_DIR = DATA_DIR / "logos"
+FONDOS_DIR = DATA_DIR / "fondos"
+PLANTILLAS_DIR = DATA_DIR / "plantillas_custom"
 LOGOS_DIR.mkdir(exist_ok=True)
 FONDOS_DIR.mkdir(exist_ok=True)
 PLANTILLAS_DIR.mkdir(exist_ok=True)

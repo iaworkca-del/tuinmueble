@@ -27,6 +27,7 @@ from branding import (
     logo_path_para_guardar, fondo_path_para_guardar, logo_url,
     tiene_branding_cuenta,
     LOGO_PATH, FONDO_PATH,
+    LOGOS_DIR, FONDOS_DIR, PLANTILLAS_DIR,
     plantilla_custom_existe, plantilla_custom_url, plantilla_custom_path_para_guardar,
 )
 from db import (
@@ -84,7 +85,7 @@ from db import (
     existe_cita_en_horario,
 )
 from noticias_scheduler import iniciar_scheduler_noticias
-from gemini_service import generar_noticia_diaria
+from gemini_service import generar_noticia_diaria, NOTICIAS_IMG_DIR as NOTICIAS_DIR
 from auth import (
     seed_admin,
     hash_password,
@@ -126,9 +127,43 @@ def _cerrar_sesion_agente(request: Request) -> None:
         request.session.clear()
 
 BASE_DIR = Path(__file__).parent
-UPLOAD_DIR = BASE_DIR / "static" / "uploads"
+# Contenido subido por usuarios: vive en data/ (Volume persistente de Railway),
+# no en static/, para que sobreviva a los deploys (ver PROCEDIMIENTO_DEPLOY.md).
+UPLOAD_DIR = BASE_DIR / "data" / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+
+def _migrar_contenido_legacy_a_volume():
+    """Una sola vez: si en static/ quedan uploads/logos/fondos/noticias de antes
+    de mover estas carpetas al Volume, los copia a su nueva ubicacion en data/
+    (sin pisar nada que ya exista ahi). Idempotente: no hace nada en deploys
+    posteriores una vez migrado."""
+    pares = [
+        (BASE_DIR / "static" / "uploads", UPLOAD_DIR),
+        (BASE_DIR / "static" / "logos", LOGOS_DIR),
+        (BASE_DIR / "static" / "fondos", FONDOS_DIR),
+        (BASE_DIR / "static" / "plantillas_custom", PLANTILLAS_DIR),
+        (BASE_DIR / "static" / "noticias", NOTICIAS_DIR),
+    ]
+    for origen, destino in pares:
+        if not origen.exists():
+            continue
+        destino.mkdir(parents=True, exist_ok=True)
+        for archivo in origen.iterdir():
+            if archivo.is_file() and not (destino / archivo.name).exists():
+                shutil.copy2(str(archivo), str(destino / archivo.name))
+
+
+_migrar_contenido_legacy_a_volume()
+
+# Mounts especificos ANTES del mount general "/static": el contenido de estas
+# carpetas vive fisicamente en data/, pero se sigue sirviendo bajo /static/...
+# para no romper URLs ya guardadas en la base de datos.
+app.mount("/static/uploads", StaticFiles(directory=UPLOAD_DIR), name="static_uploads")
+app.mount("/static/logos", StaticFiles(directory=LOGOS_DIR), name="static_logos")
+app.mount("/static/fondos", StaticFiles(directory=FONDOS_DIR), name="static_fondos")
+app.mount("/static/plantillas_custom", StaticFiles(directory=PLANTILLAS_DIR), name="static_plantillas")
+app.mount("/static/noticias", StaticFiles(directory=NOTICIAS_DIR), name="static_noticias")
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
@@ -735,16 +770,12 @@ async def backup_descarga(request: Request):
             zf.write(str(db_path), "data/propiedades.db")
         for f in data_dir.glob("branding*.json"):
             zf.write(str(f), f"data/{f.name}")
-        logos_dir = BASE_DIR / "static" / "logos"
-        if logos_dir.exists():
-            for f in logos_dir.iterdir():
-                if f.is_file():
-                    zf.write(str(f), f"static/logos/{f.name}")
-        fondos_dir = BASE_DIR / "static" / "fondos"
-        if fondos_dir.exists():
-            for f in fondos_dir.iterdir():
-                if f.is_file():
-                    zf.write(str(f), f"static/fondos/{f.name}")
+        for carpeta, nombre_zip in ((LOGOS_DIR, "logos"), (FONDOS_DIR, "fondos"),
+                                     (PLANTILLAS_DIR, "plantillas_custom")):
+            if carpeta.exists():
+                for f in carpeta.iterdir():
+                    if f.is_file():
+                        zf.write(str(f), f"data/{nombre_zip}/{f.name}")
         logo_global = BASE_DIR / "static" / "logo.png"
         if logo_global.exists():
             zf.write(str(logo_global), "static/logo.png")
@@ -814,15 +845,23 @@ async def restaurar_submit(request: Request, archivo: UploadFile = File(...)):
         with tmp_zip.open("wb") as f:
             shutil.copyfileobj(archivo.file, f)
         data_dir = BASE_DIR / "data"
-        static_dir = BASE_DIR / "static"
         data_dir.mkdir(exist_ok=True)
+        # Backups viejos guardaban logos/fondos/plantillas bajo static/; ahora viven
+        # en data/ (Volume persistente), asi que se remapean al restaurar.
+        carpetas_legacy_a_data = ("static/logos/", "static/fondos/", "static/plantillas_custom/")
         with zipfile.ZipFile(str(tmp_zip), "r") as zf:
             for nombre in zf.namelist():
                 if nombre.endswith("/"):
                     continue
-                if not (nombre.startswith("data/") or nombre.startswith("static/")):
-                    continue
-                destino = BASE_DIR / nombre
+                destino_rel = nombre
+                for prefijo_legacy in carpetas_legacy_a_data:
+                    if nombre.startswith(prefijo_legacy):
+                        destino_rel = "data/" + nombre[len("static/"):]
+                        break
+                else:
+                    if not (nombre.startswith("data/") or nombre.startswith("static/")):
+                        continue
+                destino = BASE_DIR / destino_rel
                 destino.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(nombre) as origen, destino.open("wb") as salida:
                     shutil.copyfileobj(origen, salida)

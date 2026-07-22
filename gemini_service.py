@@ -22,7 +22,7 @@ from branding import logo_url
 load_dotenv()
 
 BASE_DIR = Path(__file__).parent
-NOTICIAS_IMG_DIR = BASE_DIR / "static" / "noticias"
+NOTICIAS_IMG_DIR = BASE_DIR / "data" / "noticias"
 NOTICIAS_IMG_DIR.mkdir(parents=True, exist_ok=True)
 
 POLLINATIONS_URL = "https://image.pollinations.ai/prompt/{prompt}?width=1024&height=1024&nologo=true&seed={seed}"

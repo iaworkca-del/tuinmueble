@@ -13,10 +13,16 @@ porque ahora la base de datos vive en un **Volume persistente de Railway**
 - Un `git push` a `tuinmueble.git` (repo conectado a Railway) actualiza el
   **código**. El Volume con los datos reales **no se ve afectado** por un
   deploy, sin importar qué haya en el `data/` del repositorio.
-- Las imágenes (`static/uploads`, `static/noticias`, `static/logos`,
-  `static/fondos`, `logo.png`, `fondo.jpg`) **NO** están cubiertas por el
-  Volume (Railway solo permite 1 Volume en el plan actual). Estas siguen
-  viviendo en git como respaldo. Ver la sección "Imágenes" más abajo.
+- (2026-07-22) Las imágenes subidas por usuarios — `uploads` (fotos/PDFs de
+  propiedades), `logos`, `fondos`, `plantillas_custom` y `noticias` — se
+  movieron a `data/uploads`, `data/logos`, `data/fondos`,
+  `data/plantillas_custom` y `data/noticias` (dentro del mismo Volume, no
+  hace falta un segundo Volume). Se siguen sirviendo en las mismas URLs
+  `/static/uploads/...`, `/static/logos/...`, etc. gracias a mounts
+  específicos en `main.py`. Antes vivían en `static/` y un logo o foto
+  subida directo en producción se perdía en el siguiente deploy — ya no.
+  `logo.png` y `fondo.jpg` (los valores por defecto de fábrica) siguen en
+  `static/` porque son un asset del código, no contenido de usuario.
 
 ## Flujo normal de trabajo
 
@@ -31,22 +37,15 @@ porque ahora la base de datos vive en un **Volume persistente de Railway**
 5. Railway redespliega el código. La base de datos del Volume sigue intacta.
 6. Verifica en producción con un GET normal (no hace falta nada especial).
 
-## Imágenes (uploads, noticias, logos, fondos)
+## Imágenes (uploads, noticias, logos, fondos, plantillas)
 
-Como estas NO están en el Volume, si un usuario sube una foto/logo nueva
-**directamente en producción**, esa imagen solo existe en el contenedor
-actual — un futuro deploy la puede perder si no está en git.
+Desde el 2026-07-22 estas carpetas viven en `data/` (Volume persistente),
+igual que la base de datos. Un logo o foto subida directo en producción
+**ya sobrevive** a los deploys de código sin necesidad de nada manual.
 
-**Antes de hacer push de un cambio de código**, si sospechas que hay
-imágenes nuevas subidas en producción que no tienes en local:
-
-1. Entra a `/panel/admin/backup` (superadmin) en producción y descarga el zip.
-2. Extrae y copia lo que haya en `static/logos/`, `static/fondos/`,
-   `static/logo.png`, `static/fondo.jpg` sobre tu carpeta local.
-3. Para fotos de propiedades (`static/uploads/`) y noticias
-   (`static/noticias/`) no hay backup automático todavía — si es crítico,
-   pide ayuda para agregarlas al backup antes de continuar.
-4. `git add` esas imágenes junto con tu cambio de código y sube todo junto.
+Si en algún momento se recrea el Volume desde cero (raro, pero posible),
+usa `/panel/admin/backup` (incluye `logos/` y `fondos/`, no `uploads/` ni
+`noticias/` por su tamaño) y `/panel/admin/restaurar` para recuperarlo.
 
 ## Reglas duras (nunca)
 

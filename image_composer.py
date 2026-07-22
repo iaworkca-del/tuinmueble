@@ -6,7 +6,9 @@ from PIL import Image, ImageDraw, ImageFont
 from branding import get_branding, hex_to_rgb, logo_path_absoluto, plantilla_custom_path_absoluto, plantilla_custom_existe
 
 BASE_DIR = Path(__file__).parent
-UPLOAD_DIR = BASE_DIR / "static" / "uploads"
+# Contenido subido por usuarios: vive en data/ (Volume persistente de Railway),
+# no en static/, para que sobreviva a los deploys.
+UPLOAD_DIR = BASE_DIR / "data" / "uploads"
 LOGO_PATH = BASE_DIR / "static" / "logo.png"
 
 SIZE = 1080
