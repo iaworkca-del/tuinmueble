@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ datos.tipo_propiedad }} en {{ datos.operacion }} — {{ branding.nombre_agencia }}</title>
+
+  <!-- Open Graph: para que WhatsApp/redes muestren el logo al compartir el enlace -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{ datos.tipo_propiedad }} en {{ datos.operacion }} — {{ branding.nombre_agencia }}" />
+  <meta property="og:description" content="{{ datos.direccion }}{% if datos.ciudad_estado %}, {{ datos.ciudad_estado }}{% endif %}" />
+  <meta property="og:url" content="{{ request.url }}" />
+  {% if branding.logo %}
+  <meta property="og:image" content="{{ request.base_url }}{{ branding.logo.lstrip('/') }}" />
+  <meta name="twitter:card" content="summary" />
+  {% endif %}
+
   <link rel="stylesheet" href="/static/css/public.css" />
   <style>
     :root {
