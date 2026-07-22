@@ -173,6 +173,20 @@ def _descarga(static_url: str) -> str:
     return f"/descargar/{static_url.split('/')[-1]}"
 
 
+@app.get("/debug/headers")
+async def debug_headers(request: Request):
+    """TEMPORAL: diagnosticar el esquema http/https detras del proxy. Quitar luego."""
+    import sys
+    headers = {k: v for k, v in request.headers.items() if k.lower() != "cookie"}
+    return JSONResponse({
+        "scheme_visto_por_la_app": request.url.scheme,
+        "base_url": str(request.base_url),
+        "client": str(request.scope.get("client")),
+        "python_version": sys.version,
+        "headers": headers,
+    })
+
+
 # ──────────────────────────────────────────────────────────────
 # Sitio público
 # ──────────────────────────────────────────────────────────────
