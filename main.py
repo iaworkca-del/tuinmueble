@@ -1769,3 +1769,12 @@ async def generar(
         name="result.html",
         context={"branding": get_branding(agente), "prop_id": prop_id, **payload},
     )
+
+
+# Detrás de Railway/Cloudflare el TLS se termina antes de llegar aquí, así que
+# uvicorn ve el tráfico como http aunque el sitio público sea https (rompe
+# og:image, og:url y cualquier URL absoluta). El flag --proxy-headers del
+# Procfile no estaba teniendo efecto real, así que se envuelve el ASGI app
+# directamente para no depender de cómo Railway invoque el proceso.
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware  # noqa: E402
+app = ProxyHeadersMiddleware(app, trusted_hosts="*")
