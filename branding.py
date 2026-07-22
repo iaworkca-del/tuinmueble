@@ -150,12 +150,30 @@ def plantilla_custom_existe(agente: dict = None) -> bool:
     return _plantilla_custom_path(agente).exists()
 
 
+def _url_publica(path: Path) -> str:
+    """URL pública bajo /static/... de un archivo, sin importar si vive
+    físicamente en static/ (assets de fábrica) o en data/ (contenido de
+    usuario en el Volume persistente) — ambos se sirven bajo /static/...
+    gracias a los mounts específicos en main.py."""
+    for carpeta, prefijo in (
+        (LOGOS_DIR, "static/logos"),
+        (FONDOS_DIR, "static/fondos"),
+        (PLANTILLAS_DIR, "static/plantillas_custom"),
+    ):
+        try:
+            rel = path.relative_to(carpeta)
+            return f"/{prefijo}/{str(rel).replace(chr(92), '/')}?v={int(path.stat().st_mtime)}"
+        except ValueError:
+            continue
+    rel = path.relative_to(BASE_DIR)
+    return f"/{str(rel).replace(chr(92), '/')}?v={int(path.stat().st_mtime)}"
+
+
 def plantilla_custom_url(agente: dict = None) -> str:
     p = _plantilla_custom_path(agente)
     if p.exists():
         try:
-            rel = p.relative_to(BASE_DIR)
-            return f"/{str(rel).replace(chr(92), '/')}?v={int(p.stat().st_mtime)}"
+            return _url_publica(p)
         except Exception:
             return ""
     return ""
@@ -180,8 +198,7 @@ def fondo_url(agente: dict = None) -> str:
     fp = _fondo_path(agente)
     if fp.exists():
         try:
-            rel = fp.relative_to(BASE_DIR)
-            return f"/{str(rel).replace(chr(92), '/')}?v={int(fp.stat().st_mtime)}"
+            return _url_publica(fp)
         except Exception:
             return ""
     return ""
@@ -246,8 +263,7 @@ def logo_url(agente: dict = None) -> str:
     lp = _logo_path(agente)
     if lp.exists():
         try:
-            rel = lp.relative_to(BASE_DIR)
-            return f"/{str(rel).replace(chr(92), '/')}?v={int(lp.stat().st_mtime)}"
+            return _url_publica(lp)
         except Exception:
             return ""
     return ""
