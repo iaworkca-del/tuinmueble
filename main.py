@@ -26,7 +26,7 @@ from branding import (
     get_branding, guardar_branding, logo_existe, fondo_existe,
     logo_path_para_guardar, fondo_path_para_guardar, logo_url,
     tiene_branding_cuenta,
-    LOGO_PATH, FONDO_PATH,
+    LOGO_PATH, FONDO_PATH, LOGO_PRINCIPAL_PATH, FONDO_PRINCIPAL_PATH,
     LOGOS_DIR, FONDOS_DIR, PLANTILLAS_DIR,
     plantilla_custom_existe, plantilla_custom_url, plantilla_custom_path_para_guardar,
 )
@@ -159,6 +159,19 @@ def _migrar_contenido_legacy_a_volume():
 
 
 _migrar_contenido_legacy_a_volume()
+
+# Logo/fondo de la cuenta principal (SuperAdmin): si se subio un override
+# persistente en data/, se sirve ese; si no, el asset de fabrica en static/.
+# Rutas explicitas ANTES del mount general "/static" para que tengan prioridad.
+@app.get("/static/logo.png")
+async def _logo_principal_dinamico():
+    return FileResponse(LOGO_PRINCIPAL_PATH if LOGO_PRINCIPAL_PATH.exists() else LOGO_PATH)
+
+
+@app.get("/static/fondo.jpg")
+async def _fondo_principal_dinamico():
+    return FileResponse(FONDO_PRINCIPAL_PATH if FONDO_PRINCIPAL_PATH.exists() else FONDO_PATH)
+
 
 # Mounts especificos ANTES del mount general "/static": el contenido de estas
 # carpetas vive fisicamente en data/, pero se sigue sirviendo bajo /static/...
@@ -814,12 +827,10 @@ async def backup_descarga(request: Request):
                 for f in carpeta.iterdir():
                     if f.is_file():
                         zf.write(str(f), f"data/{nombre_zip}/{f.name}")
-        logo_global = BASE_DIR / "static" / "logo.png"
-        if logo_global.exists():
-            zf.write(str(logo_global), "static/logo.png")
-        fondo_global = BASE_DIR / "static" / "fondo.jpg"
-        if fondo_global.exists():
-            zf.write(str(fondo_global), "static/fondo.jpg")
+        if LOGO_PRINCIPAL_PATH.exists():
+            zf.write(str(LOGO_PRINCIPAL_PATH), "data/logo_principal.png")
+        if FONDO_PRINCIPAL_PATH.exists():
+            zf.write(str(FONDO_PRINCIPAL_PATH), "data/fondo_principal.jpg")
     return FileResponse(
         path=str(zip_path),
         media_type="application/zip",

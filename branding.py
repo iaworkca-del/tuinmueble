@@ -7,6 +7,12 @@ DATA_DIR.mkdir(exist_ok=True)
 BRANDING_FILE = DATA_DIR / "branding.json"
 LOGO_PATH = BASE_DIR / "static" / "logo.png"
 FONDO_PATH = BASE_DIR / "static" / "fondo.jpg"
+# Cuando la cuenta "principal" (SuperAdmin, sin cuenta_id — el sitio OrinokIAgente
+# mismo) sube SU PROPIO logo/fondo, no puede guardarse en LOGO_PATH/FONDO_PATH:
+# esos son el asset de fábrica versionado en git, no contenido de usuario, y se
+# perdería en cada deploy. Se guarda aquí, en el Volume persistente, en su lugar.
+LOGO_PRINCIPAL_PATH = DATA_DIR / "logo_principal.png"
+FONDO_PRINCIPAL_PATH = DATA_DIR / "fondo_principal.jpg"
 
 # Estas carpetas viven dentro de data/ (el Volume persistente de Railway),
 # NO en static/, porque son contenido subido por usuarios en producción.
@@ -117,6 +123,8 @@ def _logo_path(agente: dict = None) -> Path:
             p = LOGOS_DIR / f"cuenta_{cuenta_id}.png"
             if p.exists():
                 return p
+    if LOGO_PRINCIPAL_PATH.exists():
+        return LOGO_PRINCIPAL_PATH
     return LOGO_PATH
 
 
@@ -130,6 +138,8 @@ def _fondo_path(agente: dict = None) -> Path:
             p = FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
             if p.exists():
                 return p
+    if FONDO_PRINCIPAL_PATH.exists():
+        return FONDO_PRINCIPAL_PATH
     return FONDO_PATH
 
 
@@ -154,7 +164,11 @@ def _url_publica(path: Path) -> str:
     """URL pública bajo /static/... de un archivo, sin importar si vive
     físicamente en static/ (assets de fábrica) o en data/ (contenido de
     usuario en el Volume persistente) — ambos se sirven bajo /static/...
-    gracias a los mounts específicos en main.py."""
+    gracias a los mounts/rutas específicas en main.py."""
+    if path == LOGO_PRINCIPAL_PATH:
+        return f"/static/logo.png?v={int(path.stat().st_mtime)}"
+    if path == FONDO_PRINCIPAL_PATH:
+        return f"/static/fondo.jpg?v={int(path.stat().st_mtime)}"
     for carpeta, prefijo in (
         (LOGOS_DIR, "static/logos"),
         (FONDOS_DIR, "static/fondos"),
@@ -274,25 +288,25 @@ def logo_path_absoluto(agente: dict = None) -> Path:
 
 
 def logo_path_para_guardar(agente: dict = None, nivel: str = "cuenta") -> Path:
-    if not agente:
-        return LOGO_PATH
-    if nivel == "agente":
-        return LOGOS_DIR / f"agente_{agente['id']}.png"
-    cuenta_id = agente.get("cuenta_id")
-    if cuenta_id:
-        return LOGOS_DIR / f"cuenta_{cuenta_id}.png"
-    return LOGO_PATH
+    if agente:
+        if nivel == "agente":
+            return LOGOS_DIR / f"agente_{agente['id']}.png"
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            return LOGOS_DIR / f"cuenta_{cuenta_id}.png"
+    # Sin agente, o agente sin cuenta_id (SuperAdmin / cuenta principal): es
+    # el logo de la cuenta principal, que debe persistir en el Volume.
+    return LOGO_PRINCIPAL_PATH
 
 
 def fondo_path_para_guardar(agente: dict = None, nivel: str = "cuenta") -> Path:
-    if not agente:
-        return FONDO_PATH
-    if nivel == "agente":
-        return FONDOS_DIR / f"agente_{agente['id']}.jpg"
-    cuenta_id = agente.get("cuenta_id")
-    if cuenta_id:
-        return FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
-    return FONDO_PATH
+    if agente:
+        if nivel == "agente":
+            return FONDOS_DIR / f"agente_{agente['id']}.jpg"
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            return FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
+    return FONDO_PRINCIPAL_PATH
 
 
 def fondo_existe(agente: dict = None) -> bool:
