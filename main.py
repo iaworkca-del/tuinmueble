@@ -173,6 +173,20 @@ async def _fondo_principal_dinamico():
     return FileResponse(FONDO_PRINCIPAL_PATH if FONDO_PRINCIPAL_PATH.exists() else FONDO_PATH)
 
 
+# Default neutro e inmutable para cuentas reales sin logo/fondo propio: SIEMPRE
+# el asset de fabrica, nunca el override de la cuenta principal (aislamiento
+# entre cuentas). Distinto de /static/logo.png y /static/fondo.jpg de arriba,
+# que sí reflejan el override de la cuenta principal.
+@app.get("/static/logo-default.png")
+async def _logo_default_estatico():
+    return FileResponse(LOGO_PATH)
+
+
+@app.get("/static/fondo-default.jpg")
+async def _fondo_default_estatico():
+    return FileResponse(FONDO_PATH)
+
+
 # Mounts especificos ANTES del mount general "/static": el contenido de estas
 # carpetas vive fisicamente en data/, pero se sigue sirviendo bajo /static/...
 # para no romper URLs ya guardadas en la base de datos.

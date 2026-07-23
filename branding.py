@@ -213,12 +213,25 @@ def plantilla_custom_path_para_guardar(agente: dict = None, nivel: str = "cuenta
 
 
 def fondo_url(agente: dict = None) -> str:
-    fp = _fondo_path(agente)
-    if fp.exists():
-        try:
-            return _url_publica(fp)
-        except Exception:
-            return ""
+    if agente:
+        p = FONDOS_DIR / f"agente_{agente['id']}.jpg"
+        if p.exists():
+            return _url_publica(p)
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            p = FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
+            if p.exists():
+                return _url_publica(p)
+            # Cuenta real sin fondo propio: default neutro e inmutable, con
+            # una URL propia que NUNCA refleja el override de la principal.
+            if not FONDO_PATH.exists():
+                return ""
+            return f"/static/fondo-default.jpg?v={int(FONDO_PATH.stat().st_mtime)}"
+    # Cuenta principal (sin agente, o agente sin cuenta_id).
+    if FONDO_PRINCIPAL_PATH.exists():
+        return f"/static/fondo.jpg?v={int(FONDO_PRINCIPAL_PATH.stat().st_mtime)}"
+    if FONDO_PATH.exists():
+        return f"/static/fondo.jpg?v={int(FONDO_PATH.stat().st_mtime)}"
     return ""
 
 
@@ -278,12 +291,25 @@ def logo_existe(agente: dict = None) -> bool:
 
 
 def logo_url(agente: dict = None) -> str:
-    lp = _logo_path(agente)
-    if lp.exists():
-        try:
-            return _url_publica(lp)
-        except Exception:
-            return ""
+    if agente:
+        p = LOGOS_DIR / f"agente_{agente['id']}.png"
+        if p.exists():
+            return _url_publica(p)
+        cuenta_id = agente.get("cuenta_id")
+        if cuenta_id:
+            p = LOGOS_DIR / f"cuenta_{cuenta_id}.png"
+            if p.exists():
+                return _url_publica(p)
+            # Cuenta real sin logo propio: default neutro e inmutable, con
+            # una URL propia que NUNCA refleja el override de la principal.
+            if not LOGO_PATH.exists():
+                return ""
+            return f"/static/logo-default.png?v={int(LOGO_PATH.stat().st_mtime)}"
+    # Cuenta principal (sin agente, o agente sin cuenta_id).
+    if LOGO_PRINCIPAL_PATH.exists():
+        return f"/static/logo.png?v={int(LOGO_PRINCIPAL_PATH.stat().st_mtime)}"
+    if LOGO_PATH.exists():
+        return f"/static/logo.png?v={int(LOGO_PATH.stat().st_mtime)}"
     return ""
 
 
