@@ -492,6 +492,14 @@ def guardar_noticia(payload: dict) -> int:
         return cur.lastrowid
 
 
+def actualizar_imagen_noticia(noticia_id: int, imagen_url: str, imagen_es_logo: bool = False) -> None:
+    with _conn() as conn:
+        conn.execute(
+            "UPDATE noticias SET imagen_url = ?, imagen_es_logo = ? WHERE id = ?",
+            (imagen_url, 1 if imagen_es_logo else 0, noticia_id),
+        )
+
+
 def listar_noticias(limite: int = None) -> list:
     sql = "SELECT * FROM noticias ORDER BY id DESC"
     if limite:

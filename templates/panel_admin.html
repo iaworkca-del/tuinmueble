@@ -118,6 +118,10 @@
   <div style="display:flex; gap:0.5rem;">
     <a href="/panel/leads" class="btn-secondary" style="font-size:0.85rem;">📥 Leads{% if leads_no_leidos %} ({{ leads_no_leidos }}){% endif %}</a>
     <a href="/panel/admin/backup" class="btn-secondary" style="font-size:0.85rem; background:#27ae60; color:#fff;">💾 Backup</a>
+    <form action="/panel/admin/reparar-noticias" method="post" style="display:contents;"
+          onsubmit="return confirm('Esto regenera la imagen de las noticias cuyo archivo se haya perdido. ¿Continuar?');">
+      <button type="submit" class="btn-secondary" style="font-size:0.85rem;">🖼 Reparar noticias</button>
+    </form>
     <a href="/panel" class="btn-secondary" style="font-size:0.85rem;">Dashboard</a>
     <a href="/panel/crear" class="btn-secondary" style="font-size:0.85rem;">+ Nueva propiedad</a>
     <a href="/logout" class="btn-secondary" style="font-size:0.85rem;">Salir</a>

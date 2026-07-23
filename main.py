@@ -54,6 +54,7 @@ from db import (
     obtener_noticia,
     obtener_metricas,
     guardar_noticia,
+    actualizar_imagen_noticia,
     crear_cuenta,
     obtener_cuenta,
     listar_cuentas,
@@ -85,7 +86,10 @@ from db import (
     existe_cita_en_horario,
 )
 from noticias_scheduler import iniciar_scheduler_noticias
-from gemini_service import generar_noticia_diaria, NOTICIAS_IMG_DIR as NOTICIAS_DIR
+from gemini_service import (
+    generar_noticia_diaria, NOTICIAS_IMG_DIR as NOTICIAS_DIR,
+    imagen_noticia_existe, regenerar_imagen_noticia,
+)
 from auth import (
     seed_admin,
     hash_password,
@@ -173,6 +177,15 @@ def _descarga(static_url: str) -> str:
     return f"/descargar/{static_url.split('/')[-1]}"
 
 
+def _con_imagen_segura(noticia: dict) -> dict:
+    """Si el archivo de imagen de la noticia se perdió (deploy sin persistencia,
+    etc.), muestra el logo en su lugar en vez de un <img> roto. Solo revisa el
+    disco (rápido, sin red) — no regenera; para eso está /panel/admin/reparar-noticias."""
+    if noticia and not noticia.get("imagen_es_logo") and not imagen_noticia_existe(noticia.get("imagen_url", "")):
+        noticia = {**noticia, "imagen_url": logo_url(), "imagen_es_logo": True}
+    return noticia
+
+
 # ──────────────────────────────────────────────────────────────
 # Sitio público
 # ──────────────────────────────────────────────────────────────
@@ -181,7 +194,7 @@ def _descarga(static_url: str) -> str:
 async def inicio_publico(request: Request):
     _cerrar_sesion_agente(request)
     propiedades = listar_propiedades_publicadas(limite=6)
-    noticias = listar_noticias(limite=6)
+    noticias = [_con_imagen_segura(n) for n in listar_noticias(limite=6)]
     return templates.TemplateResponse(
         request=request,
         name="public/index.html",
@@ -248,6 +261,7 @@ async def noticia_detalle_publico(request: Request, noticia_id: int):
     noticia = obtener_noticia(noticia_id)
     if not noticia:
         return RedirectResponse(url="/")
+    noticia = _con_imagen_segura(noticia)
     return templates.TemplateResponse(
         request=request,
         name="public/noticia_detalle.html",
@@ -752,6 +766,30 @@ async def admin_agente_password(request: Request, agente_id: int, password_nueva
             url="/panel/admin?error=La contraseña debe tener al menos 6 caracteres.", status_code=303)
     set_password_agente(agente_id, hash_password(password_nueva))
     return RedirectResponse(url="/panel/admin?mensaje=Contraseña restablecida.", status_code=303)
+
+
+@app.post("/panel/admin/reparar-noticias")
+async def reparar_noticias_endpoint(request: Request):
+    """Regenera la imagen de cualquier noticia cuyo archivo se haya perdido
+    (p. ej. por deploys previos a que uploads/noticias vivieran en el Volume)."""
+    agente = obtener_usuario_actual(request)
+    if not agente or not es_superadmin(agente):
+        return RedirectResponse(url="/panel", status_code=303)
+    reparadas = 0
+    fallidas = 0
+    for noticia in listar_noticias():
+        if noticia.get("imagen_es_logo") or imagen_noticia_existe(noticia.get("imagen_url", "")):
+            continue
+        nueva_url, es_logo = regenerar_imagen_noticia(noticia.get("titulo", ""), noticia.get("resumen", ""))
+        if nueva_url and not es_logo:
+            actualizar_imagen_noticia(noticia["id"], nueva_url, es_logo)
+            reparadas += 1
+        else:
+            fallidas += 1
+    mensaje = f"{reparadas} noticia(s) reparada(s)."
+    if fallidas:
+        mensaje += f" {fallidas} no se pudieron regenerar (quedan con el logo por ahora)."
+    return RedirectResponse(url=f"/panel/admin?mensaje={quote(mensaje)}", status_code=303)
 
 
 @app.get("/panel/admin/backup")

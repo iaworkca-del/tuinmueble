@@ -143,6 +143,26 @@ def generar_imagen_noticia(prompt_imagen: str) -> str:
     return f"/static/noticias/{nombre}"
 
 
+def imagen_noticia_existe(imagen_url: str) -> bool:
+    """True si el archivo de imagen de una noticia existe fisicamente en disco."""
+    if not imagen_url or not imagen_url.startswith("/static/noticias/"):
+        return False
+    nombre = imagen_url.rsplit("/", 1)[-1]
+    return (NOTICIAS_IMG_DIR / nombre).exists()
+
+
+def regenerar_imagen_noticia(titulo: str, resumen: str) -> tuple:
+    """Genera una imagen nueva para una noticia existente cuyo archivo se perdio,
+    usando su titulo/resumen como base del prompt. Devuelve (imagen_url, imagen_es_logo)."""
+    prompt = f"{titulo}. {resumen}".strip(". ") or "Venezuelan real estate, professional photography"
+    try:
+        return generar_imagen_noticia(prompt), False
+    except Exception as e:
+        print(f"noticias_service: no se pudo regenerar la imagen: {e}")
+        url_logo = logo_url()
+        return (url_logo or None), bool(url_logo)
+
+
 def generar_noticia_diaria(tema: str = None) -> dict:
     """
     Orquesta la generación completa de una noticia/tip:
