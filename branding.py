@@ -120,9 +120,13 @@ def _logo_path(agente: dict = None) -> Path:
             return p
         cuenta_id = agente.get("cuenta_id")
         if cuenta_id:
+            # Cuenta real (inmobiliaria/agente) sin logo propio: cae al asset
+            # neutro de fábrica, NUNCA al logo personalizado de la cuenta
+            # principal (OrinokIAgente) — cada perfil es independiente.
             p = LOGOS_DIR / f"cuenta_{cuenta_id}.png"
-            if p.exists():
-                return p
+            return p if p.exists() else LOGO_PATH
+    # Sin agente, o agente sin cuenta_id: es la cuenta principal (SuperAdmin /
+    # sitio OrinokIAgente) viendo/editando su propio logo.
     if LOGO_PRINCIPAL_PATH.exists():
         return LOGO_PRINCIPAL_PATH
     return LOGO_PATH
@@ -135,9 +139,9 @@ def _fondo_path(agente: dict = None) -> Path:
             return p
         cuenta_id = agente.get("cuenta_id")
         if cuenta_id:
+            # Mismo criterio que _logo_path: aislamiento entre cuentas.
             p = FONDOS_DIR / f"cuenta_{cuenta_id}.jpg"
-            if p.exists():
-                return p
+            return p if p.exists() else FONDO_PATH
     if FONDO_PRINCIPAL_PATH.exists():
         return FONDO_PRINCIPAL_PATH
     return FONDO_PATH
