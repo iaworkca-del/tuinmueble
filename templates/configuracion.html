@@ -400,6 +400,7 @@
     background: #f1f1f1; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;
     font-size: 0.78rem; padding: 0.3rem 0.6rem; color: #555;
   }
+  .plan-pub-header-acciones button:disabled { opacity: 0.35; cursor: not-allowed; }
 </style>
 
 {% if agente.es_admin %}
@@ -463,6 +464,8 @@ function renderPlanesPublicos() {
           <span class="plan-pub-header-precio">${escapeHtmlPlan(plan.precio)}${plan.destacado ? ' · ⭐ destacado' : ''}</span>
         </div>
         <div class="plan-pub-header-acciones">
+          <button type="button" onclick="event.stopPropagation(); moverPlanPublico(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Mover arriba">▲</button>
+          <button type="button" onclick="event.stopPropagation(); moverPlanPublico(${idx}, 1)" ${idx === planesPublicosActuales.length - 1 ? 'disabled' : ''} title="Mover abajo">▼</button>
           <button type="button" onclick="event.stopPropagation(); eliminarPlanPublico(${idx})">✕ Eliminar</button>
           <span class="plan-pub-chevron">▾</span>
         </div>
@@ -530,6 +533,17 @@ function agregarPlanPublico() {
   renderPlanesPublicos();
 }
 function eliminarPlanPublico(idx) { planesPublicosActuales.splice(idx, 1); planesAbiertos = new Set(); renderPlanesPublicos(); }
+
+function moverPlanPublico(idx, direccion) {
+  const destino = idx + direccion;
+  if (destino < 0 || destino >= planesPublicosActuales.length) return;
+  [planesPublicosActuales[idx], planesPublicosActuales[destino]] = [planesPublicosActuales[destino], planesPublicosActuales[idx]];
+  const abiertoIdx = planesAbiertos.has(idx), abiertoDestino = planesAbiertos.has(destino);
+  planesAbiertos.delete(idx); planesAbiertos.delete(destino);
+  if (abiertoIdx) planesAbiertos.add(destino);
+  if (abiertoDestino) planesAbiertos.add(idx);
+  renderPlanesPublicos();
+}
 
 function restablecerPlanesPublicos() {
   if (!confirm('Esto reemplaza los planes actuales por los 3 planes por defecto. ¿Continuar?')) return;
