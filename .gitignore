@@ -20,3 +20,5 @@ data/plantillas_custom/
 data/noticias/
 data/logo_principal.png
 data/fondo_principal.jpg
+data/planes_publicos.json
+data/planes_publicos_backup_*.json

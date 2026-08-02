@@ -37,11 +37,14 @@
     <a href="/" class="link">Inicio</a>
     <a href="/servicios" class="link">Servicios</a>
     <a href="/catalogo" class="link">Propiedades</a>
+    <a href="#" class="link" onclick="abrirPlanesAgente(event)">Planes</a>
     <a href="/login" class="btn-acceso">Acceso agentes</a>
   </div>
 </nav>
 
 {% block contenido %}{% endblock %}
+
+{% include 'public/_planes_modal.html' %}
 
 {% set footer_enlaces = [
   {'texto': 'Servicios', 'href': '/servicios'},

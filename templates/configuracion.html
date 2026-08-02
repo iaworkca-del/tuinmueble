@@ -354,7 +354,223 @@
       </div>
     </form>
   </div>
+
+  {% if agente.es_admin %}
+  <div class="card" style="margin-top:1.5rem;">
+    <h2>💳 Planes y Suscripciones (web pública)</h2>
+    <p style="font-size:0.85rem; color:#888; margin-bottom:1rem;">
+      Estas son las tarjetas de precios que ven los visitantes al hacer clic en "Planes" en la web pública.
+      No tiene relación con el plan interno (prueba/mensual/anual/vitalicio) que le asignas a cada cuenta desde Admin Cuentas.
+    </p>
+    <div id="toastPlanes" style="display:none; padding:0.6rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:0.85rem;"></div>
+    <div id="planesPublicosContainer"></div>
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-top:0.5rem;">
+      <button type="button" class="btn-secondary" onclick="agregarPlanPublico()">+ Agregar plan</button>
+      <button type="button" class="btn-secondary" onclick="restablecerPlanesPublicos()">↺ Restablecer a los planes por defecto</button>
+      <button type="button" class="btn-secondary" style="background:var(--azul); color:#fff;" onclick="guardarPlanesPublicos()">💾 Guardar planes</button>
+    </div>
+  </div>
+  {% endif %}
 </div>
+
+<style>
+  .plan-pub-card {
+    background: #fff; border: 1px solid #e5e5e5; border-radius: 12px;
+    margin-bottom: 0.8rem; box-shadow: 0 2px 12px rgba(0,0,0,0.05); overflow: hidden;
+  }
+  .plan-pub-header {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 0.6rem; padding: 0.9rem 1.2rem; cursor: pointer; user-select: none;
+  }
+  .plan-pub-header-info { display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; color: var(--azul); font-weight: 700; }
+  .plan-pub-header-precio { font-size: 0.78rem; color: #888; font-weight: 600; }
+  .plan-pub-chevron { transition: transform 0.2s ease; color: #999; font-size: 0.9rem; }
+  .plan-pub-card.abierto .plan-pub-chevron { transform: rotate(180deg); }
+  .plan-pub-header-acciones { display: flex; align-items: center; gap: 0.5rem; }
+  .plan-pub-body { display: none; padding: 0 1.2rem 1.2rem; }
+  .plan-pub-card.abierto .plan-pub-body { display: block; }
+  .plan-pub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 0.6rem; }
+  .plan-pub-card label { font-size: 0.75rem; color: #666; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  .plan-pub-card input[type="text"] {
+    width: 100%; padding: 0.5rem 0.7rem; border-radius: 8px; border: 1px solid #ccc; font-size: 0.85rem;
+  }
+  .plan-pub-item-row { display: flex; gap: 0.4rem; margin-bottom: 0.4rem; }
+  .plan-pub-item-row input { flex: 1; }
+  .plan-pub-item-row button, .plan-pub-header-acciones button {
+    background: #f1f1f1; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;
+    font-size: 0.78rem; padding: 0.3rem 0.6rem; color: #555;
+  }
+</style>
+
+{% if agente.es_admin %}
+<script>
+const PLANES_PUBLICOS_DEFAULT = [
+  {
+    nombre: 'Básico', tagline: 'Para inmobiliarias que están empezando', precio: 'USD$ 20', destacado: false,
+    items: [
+      '🏠 1 Landing Page de la agencia', 'Hasta 20 propiedades publicadas', '🙋🏽 1 agente',
+      '🤖 Generador de descripciones con IA', '📋 Panel de administración de propiedades',
+      '📸 Galería de fotos por propiedad', '🔗 Enlace público de la agencia',
+      '✍🏼 Recibe consultas directo por WhatsApp',
+    ],
+  },
+  {
+    nombre: 'VIP', tagline: 'Para agencias que quieren crecer 🔥', precio: 'USD$ 35', destacado: false,
+    items: [
+      '🏠 1 Landing Page de la agencia', 'Propiedades ilimitadas', '🙋🏽 Hasta 5 agentes',
+      '🤖 Generador de descripciones con IA (avanzado)', '📋 Panel de administración de propiedades',
+      '📸 Galería de fotos y videos por propiedad', '🔗 Enlace público de la agencia',
+      '✍🏼 Recibe consultas directo por WhatsApp', '📊 Estadísticas de visitas por propiedad',
+      '👥 Registro de clientes interesados',
+    ],
+  },
+  {
+    nombre: 'Plus', tagline: 'Para inmobiliarias que quieren automatizar todo 🚀', precio: 'USD$ 45', destacado: true,
+    items: [
+      '🏠 1 Landing Page de la agencia', 'Propiedades ilimitadas', '🙋🏽 Hasta 5 agentes',
+      '🤖 Generador de descripciones con IA (avanzado)', '📋 Panel de administración de propiedades',
+      '📸 Galería de fotos y videos por propiedad', '🔗 Enlace público de la agencia',
+      '✍🏼 Recibe consultas directo por WhatsApp', '📊 Estadísticas de visitas por propiedad',
+      '👥 Registro de clientes interesados', '🤖 Generador de Contenido para Redes Sociales y WhatsApp',
+    ],
+  },
+];
+
+let planesPublicosActuales = [];
+
+async function cargarPlanesPublicos() {
+  try {
+    const resp = await fetch('/api/planes-publicos');
+    const data = await resp.json();
+    planesPublicosActuales = (data.success && Array.isArray(data.planes) && data.planes.length)
+      ? data.planes
+      : JSON.parse(JSON.stringify(PLANES_PUBLICOS_DEFAULT));
+  } catch (err) {
+    planesPublicosActuales = JSON.parse(JSON.stringify(PLANES_PUBLICOS_DEFAULT));
+  }
+  renderPlanesPublicos();
+}
+
+let planesAbiertos = new Set();
+
+function renderPlanesPublicos() {
+  const cont = document.getElementById('planesPublicosContainer');
+  cont.innerHTML = planesPublicosActuales.map((plan, idx) => `
+    <div class="plan-pub-card${planesAbiertos.has(idx) ? ' abierto' : ''}" id="planPubCard${idx}">
+      <div class="plan-pub-header" onclick="togglePlanPublico(${idx})">
+        <div class="plan-pub-header-info">
+          <span>💳 ${escapeHtmlPlan(plan.nombre || (idx + 1))}</span>
+          <span class="plan-pub-header-precio">${escapeHtmlPlan(plan.precio)}${plan.destacado ? ' · ⭐ destacado' : ''}</span>
+        </div>
+        <div class="plan-pub-header-acciones">
+          <button type="button" onclick="event.stopPropagation(); eliminarPlanPublico(${idx})">✕ Eliminar</button>
+          <span class="plan-pub-chevron">▾</span>
+        </div>
+      </div>
+      <div class="plan-pub-body">
+        <div class="plan-pub-grid">
+          <div>
+            <label>Nombre del plan</label>
+            <input type="text" value="${escapeHtmlPlan(plan.nombre)}" oninput="actualizarPlanPublico(${idx}, 'nombre', this.value); actualizarHeaderPlanPublico(${idx})">
+          </div>
+          <div>
+            <label>Precio (ej. USD$ 20)</label>
+            <input type="text" value="${escapeHtmlPlan(plan.precio)}" oninput="actualizarPlanPublico(${idx}, 'precio', this.value); actualizarHeaderPlanPublico(${idx})">
+          </div>
+        </div>
+        <label>Descripción corta</label>
+        <input type="text" value="${escapeHtmlPlan(plan.tagline)}" oninput="actualizarPlanPublico(${idx}, 'tagline', this.value)" style="margin-bottom:0.6rem;">
+        <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+          <input type="checkbox" ${plan.destacado ? 'checked' : ''} onchange="actualizarPlanPublico(${idx}, 'destacado', this.checked); actualizarHeaderPlanPublico(${idx})" style="width:auto;">
+          Destacar esta tarjeta
+        </label>
+        <label style="margin-top:0.6rem;">Qué incluye (una línea por punto)</label>
+        <div id="planPubItems${idx}"></div>
+        <button type="button" onclick="agregarItemPlanPublico(${idx})" style="margin-top:0.3rem;">+ Agregar punto</button>
+      </div>
+    </div>
+  `).join('');
+  planesPublicosActuales.forEach((_, idx) => renderItemsPlanPublico(idx));
+}
+
+function togglePlanPublico(idx) {
+  const el = document.getElementById(`planPubCard${idx}`);
+  if (!el) return;
+  if (planesAbiertos.has(idx)) { planesAbiertos.delete(idx); el.classList.remove('abierto'); }
+  else { planesAbiertos.add(idx); el.classList.add('abierto'); }
+}
+
+function actualizarHeaderPlanPublico(idx) {
+  const el = document.getElementById(`planPubCard${idx}`);
+  if (!el) return;
+  const plan = planesPublicosActuales[idx];
+  el.querySelector('.plan-pub-header-info span').textContent = `💳 ${plan.nombre || (idx + 1)}`;
+  el.querySelector('.plan-pub-header-precio').textContent = `${plan.precio}${plan.destacado ? ' · ⭐ destacado' : ''}`;
+}
+
+function renderItemsPlanPublico(idx) {
+  const wrap = document.getElementById(`planPubItems${idx}`);
+  if (!wrap) return;
+  wrap.innerHTML = (planesPublicosActuales[idx].items || []).map((item, iidx) => `
+    <div class="plan-pub-item-row">
+      <input type="text" value="${escapeHtmlPlan(item)}" onchange="actualizarItemPlanPublico(${idx}, ${iidx}, this.value)">
+      <button type="button" onclick="eliminarItemPlanPublico(${idx}, ${iidx})">✕</button>
+    </div>
+  `).join('');
+}
+
+function actualizarPlanPublico(idx, campo, valor) { planesPublicosActuales[idx][campo] = valor; }
+function actualizarItemPlanPublico(idx, iidx, valor) { planesPublicosActuales[idx].items[iidx] = valor; }
+function agregarItemPlanPublico(idx) { planesPublicosActuales[idx].items.push('Nuevo punto incluido'); renderItemsPlanPublico(idx); }
+function eliminarItemPlanPublico(idx, iidx) { planesPublicosActuales[idx].items.splice(iidx, 1); renderItemsPlanPublico(idx); }
+
+function agregarPlanPublico() {
+  planesPublicosActuales.push({ nombre: 'Nuevo plan', tagline: 'Descripción corta del plan', precio: 'USD$ 0', destacado: false, items: ['Nuevo punto incluido'] });
+  planesAbiertos.add(planesPublicosActuales.length - 1);
+  renderPlanesPublicos();
+}
+function eliminarPlanPublico(idx) { planesPublicosActuales.splice(idx, 1); planesAbiertos = new Set(); renderPlanesPublicos(); }
+
+function restablecerPlanesPublicos() {
+  if (!confirm('Esto reemplaza los planes actuales por los 3 planes por defecto. ¿Continuar?')) return;
+  planesPublicosActuales = JSON.parse(JSON.stringify(PLANES_PUBLICOS_DEFAULT));
+  planesAbiertos = new Set();
+  renderPlanesPublicos();
+}
+
+async function guardarPlanesPublicos() {
+  const toast = document.getElementById('toastPlanes');
+  try {
+    const resp = await fetch('/api/planes-publicos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planes: planesPublicosActuales }),
+    });
+    const data = await resp.json();
+    toast.style.display = 'block';
+    if (data.success) {
+      toast.style.background = '#eafaf1'; toast.style.color = '#27ae60';
+      toast.textContent = '✅ Planes guardados — ya están en vivo en la web pública.';
+    } else {
+      toast.style.background = '#fdecea'; toast.style.color = '#c0392b';
+      toast.textContent = data.error || 'Error al guardar los planes.';
+    }
+    setTimeout(() => { toast.style.display = 'none'; }, 3500);
+  } catch (err) {
+    toast.style.display = 'block';
+    toast.style.background = '#fdecea'; toast.style.color = '#c0392b';
+    toast.textContent = 'Error de conexión al guardar.';
+  }
+}
+
+function escapeHtmlPlan(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+cargarPlanesPublicos();
+</script>
+{% endif %}
 
 <script>
   document.getElementById('logo').addEventListener('change', function () {

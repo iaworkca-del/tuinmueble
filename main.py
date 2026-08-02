@@ -22,6 +22,7 @@ from image_composer import (
 )
 from pdf_service import generar_pdf
 from instagram_service import publicar_instagram
+from planes_publicos import get_planes_publicos, guardar_planes_publicos
 from branding import (
     get_branding, guardar_branding, logo_existe, fondo_existe,
     logo_path_para_guardar, fondo_path_para_guardar, logo_url,
@@ -606,6 +607,29 @@ async def recuperar_submit(
         name="recuperar.html",
         context={"branding": get_branding(), "error": None, "exito": True},
     )
+
+
+# ──────────────────────────────────────────────────────────────
+# Planes y Suscripciones públicos (modal "Planes" del header) — el
+# contenido lo edita el SuperAdmin desde /panel/admin.
+# ──────────────────────────────────────────────────────────────
+
+@app.get("/api/planes-publicos")
+async def api_planes_publicos():
+    return {"success": True, "planes": get_planes_publicos()}
+
+
+@app.post("/api/planes-publicos")
+async def api_guardar_planes_publicos(request: Request):
+    agente = obtener_usuario_actual(request)
+    if not agente or not es_superadmin(agente):
+        return JSONResponse({"success": False, "error": "No autorizado"}, status_code=403)
+    body = await request.json()
+    planes = body.get("planes")
+    if not isinstance(planes, list):
+        return JSONResponse({"success": False, "error": "Formato invalido"}, status_code=400)
+    guardar_planes_publicos(planes)
+    return {"success": True}
 
 
 # ──────────────────────────────────────────────────────────────
