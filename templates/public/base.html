@@ -15,7 +15,7 @@
   <meta name="twitter:card" content="summary" />
   {% endif %}
 
-  <link rel="stylesheet" href="/static/css/public.css" />
+  <link rel="stylesheet" href="/static/css/public.css?v={{ asset_version('static/css/public.css') }}" />
   <style>
     :root {
       --pub-primario: {{ branding.color_primario }};
@@ -77,7 +77,7 @@
 ] %}
 {% include 'public/_footer.html' %}
 
-<script src="/static/js/parallax.js"></script>
+<script src="/static/js/parallax.js?v={{ asset_version('static/js/parallax.js') }}"></script>
 {% block scripts_extra %}{% endblock %}
 </body>
 </html>

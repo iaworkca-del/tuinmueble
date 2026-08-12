@@ -74,7 +74,9 @@ body.publico {
   justify-content: center;
   gap: 5px;
   width: 34px;
+  min-width: 34px;
   height: 34px;
+  flex-shrink: 0;
   background: rgba(0,0,0,0.28);
   border: none;
   border-radius: 8px;
@@ -92,6 +94,9 @@ body.publico {
 }
 @media (max-width: 800px) {
   .pub-nav-toggle { display: flex; }
+  .pub-nav { padding: 0.8rem 1.2rem; }
+  .pub-nav .marca { min-width: 0; font-size: 1.05rem; gap: 0.4rem; }
+  .pub-nav .marca-logo { height: 40px; max-width: 120px; }
   .pub-nav .links {
     position: absolute;
     top: 100%;

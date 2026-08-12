@@ -202,6 +202,19 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 
+def _asset_version(ruta_relativa: str) -> str:
+    """Sello de tiempo del archivo estático, para forzar que el navegador
+    (o la caché de un operador móvil) descargue la versión nueva del CSS/JS
+    después de cada deploy, en vez de servir una copia vieja indefinidamente."""
+    try:
+        return str(int((BASE_DIR / ruta_relativa).stat().st_mtime))
+    except OSError:
+        return "1"
+
+
+templates.env.globals["asset_version"] = _asset_version
+
+
 def _descarga(static_url: str) -> str:
     """Convierte /static/uploads/x.jpg en /descargar/x.jpg."""
     return f"/descargar/{static_url.split('/')[-1]}"
