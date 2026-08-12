@@ -2,10 +2,36 @@
 {% block titulo %}Catálogo de propiedades — {{ branding.nombre_agencia }}{% endblock %}
 
 {% block contenido %}
-<section class="pub-seccion" style="padding-top:8rem;">
+<section class="pub-seccion" style="padding-top:8rem; padding-bottom:1.5rem;">
+  <form class="pub-buscador" action="/catalogo" method="get" style="max-width:980px; margin:0 auto;">
+    <div class="pub-buscador-tabs">
+      <input type="radio" name="operacion" id="op_comprar" value="Venta" {% if filtros.operacion == 'Venta' %}checked{% endif %}>
+      <label for="op_comprar">Comprar</label>
+      <input type="radio" name="operacion" id="op_alquilar" value="Alquiler" {% if filtros.operacion == 'Alquiler' %}checked{% endif %}>
+      <label for="op_alquilar">Alquilar</label>
+    </div>
+    <div class="pub-buscador-campos">
+      <select name="tipo" aria-label="Tipo de propiedad">
+        <option value="">Tipo de propiedad</option>
+        {% for opt in ["Casa", "Departamento / Apartamento", "Terreno o Parcela", "Penthouse", "Galpón", "Local Comercial", "Oficina"] %}
+        <option value="{{ opt }}" {% if filtros.tipo == opt %}selected{% endif %}>{{ opt }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="ciudad" placeholder="Ciudad o zona" value="{{ filtros.ciudad }}" aria-label="Ciudad o zona" />
+      <input type="number" name="precio_min" min="0" placeholder="Precio mín. USD" value="{{ filtros.precio_min }}" aria-label="Precio mínimo" />
+      <input type="number" name="precio_max" min="0" placeholder="Precio máx. USD" value="{{ filtros.precio_max }}" aria-label="Precio máximo" />
+      <button type="submit" class="pub-btn pub-btn-dorado">Buscar</button>
+    </div>
+  </form>
+</section>
+
+<section class="pub-seccion" style="padding-top:1rem;">
   <div class="pub-seccion-tit">
     <div class="eyebrow">Catálogo</div>
-    <h2>Todas nuestras propiedades</h2>
+    <h2>{{ "Resultados de tu búsqueda" if hay_filtro_activo else "Todas nuestras propiedades" }}</h2>
+    {% if hay_filtro_activo %}
+    <p>{{ propiedades|length }} propiedad{{ "es" if propiedades|length != 1 else "" }} encontrada{{ "s" if propiedades|length != 1 else "" }} · <a href="/catalogo" style="color:var(--pub-primario); text-decoration:underline;">quitar filtros</a></p>
+    {% endif %}
   </div>
   <div class="pub-catalogo-grid">
     {% for p in propiedades %}
@@ -22,7 +48,13 @@
       </div>
     </a>
     {% else %}
-    <div class="pub-prop-vacio">Muy pronto publicaremos nuestras propiedades disponibles.</div>
+    <div class="pub-prop-vacio">
+      {% if hay_filtro_activo %}
+      No encontramos propiedades con esos filtros. <a href="/catalogo" style="color:var(--pub-primario); text-decoration:underline;">Ver todas las propiedades</a>.
+      {% else %}
+      Muy pronto publicaremos nuestras propiedades disponibles.
+      {% endif %}
+    </div>
     {% endfor %}
   </div>
 </section>

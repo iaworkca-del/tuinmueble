@@ -87,6 +87,8 @@ from db import (
     existe_cita_en_horario,
 )
 from noticias_scheduler import iniciar_scheduler_noticias
+from telefono_utils import normalizar_telefono_whatsapp
+from notificaciones import notificar_lead_nuevo
 from gemini_service import (
     generar_noticia_diaria, NOTICIAS_IMG_DIR as NOTICIAS_DIR,
     imagen_noticia_existe, regenerar_imagen_noticia,
@@ -253,10 +255,51 @@ async def servicios_publico(request: Request):
     )
 
 
+def _num_o_none(valor: str):
+    try:
+        return float(valor)
+    except (TypeError, ValueError):
+        return None
+
+
+def _filtrar_propiedades(propiedades: list, operacion: str, tipo: str, ciudad: str,
+                         precio_min: str, precio_max: str) -> list:
+    pmin = _num_o_none(precio_min)
+    pmax = _num_o_none(precio_max)
+    ciudad_norm = ciudad.strip().lower()
+    if not (operacion or tipo or ciudad_norm or pmin is not None or pmax is not None):
+        return propiedades
+
+    def _coincide(p: dict) -> bool:
+        if operacion and p.get("operacion") != operacion:
+            return False
+        if tipo and p.get("tipo_propiedad") != tipo:
+            return False
+        if ciudad_norm and ciudad_norm not in f"{p.get('ciudad_estado') or ''} {p.get('direccion') or ''}".lower():
+            return False
+        precio = p.get("precio") or 0
+        if pmin is not None and precio < pmin:
+            return False
+        if pmax is not None and precio > pmax:
+            return False
+        return True
+
+    return [p for p in propiedades if _coincide(p)]
+
+
 @app.get("/catalogo", response_class=HTMLResponse)
-async def catalogo_publico(request: Request):
+async def catalogo_publico(
+    request: Request,
+    operacion: str = "",
+    tipo: str = "",
+    ciudad: str = "",
+    precio_min: str = "",
+    precio_max: str = "",
+):
     _cerrar_sesion_agente(request)
     propiedades = listar_propiedades_publicadas()
+    total_sin_filtrar = len(propiedades)
+    propiedades = _filtrar_propiedades(propiedades, operacion, tipo, ciudad, precio_min, precio_max)
     return templates.TemplateResponse(
         request=request,
         name="public/catalogo.html",
@@ -265,7 +308,12 @@ async def catalogo_publico(request: Request):
             "logo_url": logo_url(),
             "propiedades": propiedades,
             "anio": datetime.now().year,
-            "logo_url": logo_url(),
+            "filtros": {
+                "operacion": operacion, "tipo": tipo, "ciudad": ciudad,
+                "precio_min": precio_min, "precio_max": precio_max,
+            },
+            "hay_filtro_activo": bool(operacion or tipo or ciudad.strip() or precio_min or precio_max),
+            "total_sin_filtrar": total_sin_filtrar,
         },
     )
 
@@ -493,7 +541,7 @@ async def landing_contacto(
         prop_id = int(propiedad_id) if str(propiedad_id).strip() else None
     except ValueError:
         prop_id = None
-    guardar_lead(
+    lead_id = guardar_lead(
         cuenta_id=cuenta["id"],
         nombre=nombre.strip(),
         email=email.strip(),
@@ -502,7 +550,40 @@ async def landing_contacto(
         propiedad_id=prop_id,
         origen="landing",
     )
+    _notificar_lead(request, cuenta["id"], prop_id, {
+        "id": lead_id,
+        "nombre": nombre.strip(),
+        "email": email.strip(),
+        "telefono": telefono.strip(),
+        "mensaje": mensaje.strip(),
+    })
     return RedirectResponse(url=f"/cuenta/{slug}?enviado=1#contacto", status_code=303)
+
+
+def _notificar_lead(request: Request, cuenta_id: int, propiedad_id: Optional[int], lead: dict) -> None:
+    """Avisa por correo al agente dueño de la propiedad; si el lead no está
+    ligado a ninguna propiedad, avisa al agente principal de la cuenta."""
+    destinatario = ""
+    propiedad_titulo = ""
+    ctx_branding = {"id": None, "cuenta_id": cuenta_id}
+    if propiedad_id:
+        propiedad = obtener_propiedad(propiedad_id)
+        if propiedad:
+            datos_prop = propiedad.get("datos", {})
+            propiedad_titulo = datos_prop.get("direccion") or datos_prop.get("tipo_propiedad", "")
+            dueno = obtener_agente(propiedad.get("_agente_id"))
+            if dueno:
+                destinatario = (dueno.get("email") or "").strip()
+                ctx_branding = dueno
+    if not destinatario:
+        for a in listar_agentes_cuenta(cuenta_id):
+            if a.get("es_principal"):
+                destinatario = (a.get("email") or "").strip()
+                ctx_branding = a
+                break
+    branding = get_branding(ctx_branding)
+    base_url = str(request.base_url).rstrip("/")
+    notificar_lead_nuevo(destinatario, lead, propiedad_titulo, branding, base_url)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -1410,7 +1491,7 @@ async def panel_citas(request: Request, mensaje: str = "", error: str = ""):
 
 
 @app.get("/panel/crear", response_class=HTMLResponse)
-async def formulario(request: Request):
+async def formulario(request: Request, error: str = ""):
     agente = obtener_usuario_actual(request)
     if not agente:
         return RedirectResponse(url="/login?siguiente=/panel/crear", status_code=303)
@@ -1427,7 +1508,7 @@ async def formulario(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="form.html",
-        context={"branding": branding_data, "agente": agente, "suscripcion": suscripcion},
+        context={"branding": branding_data, "agente": agente, "suscripcion": suscripcion, "error": error},
     )
 
 
@@ -1539,6 +1620,8 @@ async def guardar_configuracion(
     instagram: str = Form(""),
     facebook: str = Form(""),
     x: str = Form(""),
+    lead_email_asunto: str = Form(""),
+    lead_email_intro: str = Form(""),
     logo: UploadFile = File(None),
     fondo: UploadFile = File(None),
     plantilla_custom: UploadFile = File(None),
@@ -1546,6 +1629,28 @@ async def guardar_configuracion(
     agente = obtener_usuario_actual(request)
     if not agente:
         return RedirectResponse(url="/login?siguiente=/configuracion", status_code=303)
+    if telefono_agente.strip():
+        tel_normalizado = normalizar_telefono_whatsapp(telefono_agente)
+        if not tel_normalizado:
+            return templates.TemplateResponse(
+                request=request,
+                name="configuracion.html",
+                context={
+                    "branding": get_branding(agente),
+                    "agente": agente,
+                    "logo_existe": logo_existe(agente),
+                    "logo_url": logo_url(agente),
+                    "plantilla_custom_existe": plantilla_custom_existe(agente),
+                    "plantilla_custom_url": plantilla_custom_url(agente),
+                    "guardado": False,
+                    "pw_ok": "",
+                    "pw_error": "",
+                    "cache_bust": uuid.uuid4().hex[:8],
+                    "error": "El teléfono de WhatsApp no es válido. Usa un formato como 0412-1234567 o +58 412 1234567.",
+                },
+                status_code=400,
+            )
+        telefono_agente = tel_normalizado
     nivel = "cuenta" if (es_principal_agente(agente) or es_superadmin(agente)) else "agente"
     guardar_branding({
         "nombre_agencia": nombre_agencia,
@@ -1569,6 +1674,8 @@ async def guardar_configuracion(
         "instagram": instagram,
         "facebook": facebook,
         "x": x,
+        "lead_email_asunto": lead_email_asunto,
+        "lead_email_intro": lead_email_intro,
     }, agente=agente, nivel=nivel, campos_limpiables={"instagram", "facebook", "x"})
     logo_dest = logo_path_para_guardar(agente, nivel)
     fondo_dest = fondo_path_para_guardar(agente, nivel)
@@ -1730,6 +1837,14 @@ async def generar(
             name="suscripcion_vencida.html",
             context={"branding": get_branding(agente), "agente": agente, "suscripcion": suscripcion},
         )
+
+    tel_normalizado = normalizar_telefono_whatsapp(telefono_agente)
+    if not tel_normalizado:
+        return RedirectResponse(
+            url="/panel/crear?error=El teléfono de WhatsApp no es válido. Usa un formato como 0412-1234567 o +58 412 1234567.",
+            status_code=303,
+        )
+    telefono_agente = tel_normalizado
 
     # Componer "ciudad_estado" desde municipio + estado (lo usan imagen, PDF y prompt de IA)
     ciudad_estado = ", ".join([p for p in [municipio, estado] if p]) or pais

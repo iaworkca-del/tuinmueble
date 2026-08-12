@@ -12,6 +12,33 @@
       <a href="/catalogo" class="pub-btn pub-btn-dorado">Ver propiedades</a>
       <a href="/servicios" class="pub-btn pub-btn-outline">Nuestros servicios</a>
     </div>
+
+    <form class="pub-buscador-hero" action="/catalogo" method="get">
+      <div class="pub-buscador-hero-tabs">
+        <input type="radio" name="operacion" id="op_comprar" value="Venta">
+        <label for="op_comprar">Comprar</label>
+        <input type="radio" name="operacion" id="op_alquilar" value="Alquiler">
+        <label for="op_alquilar">Alquilar</label>
+      </div>
+      <div class="pub-buscador-hero-campos">
+        <select name="tipo" aria-label="Tipo de propiedad">
+          <option value="">Tipo de propiedad</option>
+          <option value="Casa">Casa</option>
+          <option value="Departamento / Apartamento">Apartamento</option>
+          <option value="Terreno o Parcela">Terreno</option>
+          <option value="Penthouse">Penthouse</option>
+          <option value="Galpón">Galpón</option>
+          <option value="Local Comercial">Local Comercial</option>
+          <option value="Oficina">Oficina</option>
+        </select>
+        <input type="text" name="ciudad" placeholder="Ciudad o zona" aria-label="Ciudad o zona" />
+        <input type="number" name="precio_min" min="0" placeholder="Precio mín. USD" aria-label="Precio mínimo" />
+        <input type="number" name="precio_max" min="0" placeholder="Precio máx. USD" aria-label="Precio máximo" />
+        <button type="submit" class="pub-buscador-hero-btn" aria-label="Buscar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </div>
+    </form>
   </div>
   <div class="pub-scroll-indicator">↓</div>
 </section>

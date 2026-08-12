@@ -68,6 +68,54 @@ body.publico {
   font-size: 0.9rem;
   text-decoration: none;
 }
+.pub-nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 34px;
+  height: 34px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.pub-nav-toggle span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+@media (max-width: 800px) {
+  .pub-nav-toggle { display: flex; }
+  .pub-nav .links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    background: var(--pub-primario);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+  .pub-nav.nav-abierto .links {
+    max-height: 400px;
+  }
+  .pub-nav .links a.link,
+  .pub-nav .links a.btn-acceso {
+    width: 100%;
+    padding: 0.9rem 1.5rem;
+    box-sizing: border-box;
+  }
+  .pub-nav .links a.btn-acceso {
+    border-radius: 0;
+    text-align: center;
+  }
+}
 
 /* ── Hero parallax ── */
 .pub-hero {
@@ -140,6 +188,78 @@ body.publico {
 @keyframes pub-bounce {
   0%, 100% { transform: translate(-50%, 0); }
   50% { transform: translate(-50%, 10px); }
+}
+
+/* ── Buscador inteligente dentro del hero (Comprar/Alquilar + filtros) ── */
+.pub-buscador-hero {
+  margin-top: 1.8rem;
+  padding: 0.9rem;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 18px;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+.pub-buscador-hero-tabs { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 0.7rem; }
+.pub-buscador-hero-tabs input { position: absolute; opacity: 0; pointer-events: none; }
+.pub-buscador-hero-tabs label {
+  cursor: pointer;
+  padding: 0.4rem 1.1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: #fff;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.pub-buscador-hero-tabs input:checked + label {
+  background: var(--pub-secundario);
+  color: #1a1a1a;
+  border-color: transparent;
+}
+.pub-buscador-hero-campos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+.pub-buscador-hero-campos select,
+.pub-buscador-hero-campos input {
+  padding: 0.7rem 0.9rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  background: rgba(255,255,255,0.92);
+  color: #232323;
+}
+.pub-buscador-hero-campos select:focus,
+.pub-buscador-hero-campos input:focus {
+  outline: 2px solid var(--pub-secundario);
+  background: #fff;
+}
+.pub-buscador-hero-campos input::placeholder { color: #888; }
+.pub-buscador-hero-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  background: var(--pub-secundario);
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.pub-buscador-hero-btn:hover { transform: scale(1.06); }
+@media (max-width: 760px) {
+  .pub-buscador-hero-campos { grid-template-columns: 1fr 1fr; }
+  .pub-buscador-hero-btn { grid-column: 1 / -1; width: 100%; height: 44px; border-radius: 10px; }
 }
 
 /* ── Secciones ── */
@@ -499,7 +619,6 @@ body.publico {
 }
 @media (max-width: 800px) {
   .pub-detalle-grid { grid-template-columns: 1fr; }
-  .pub-nav .links a.link { display: none; }
 }
 .pub-detalle-metricas {
   display: flex; gap: 1.6rem; flex-wrap: wrap;

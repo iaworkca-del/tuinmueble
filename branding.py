@@ -52,6 +52,8 @@ DEFAULTS = {
     "instagram": "",
     "facebook": "",
     "x": "",
+    "lead_email_asunto": "Nuevo contacto",
+    "lead_email_intro": "Tienes un nuevo contacto desde tu sitio web.",
 }
 
 

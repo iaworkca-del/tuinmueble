@@ -33,6 +33,9 @@
     {% endif %}
     {{ branding.nombre_agencia }}<span>.</span>
   </a>
+  <button type="button" class="pub-nav-toggle" aria-label="Abrir menú" aria-expanded="false" onclick="toggleNavMovil(event)">
+    <span></span><span></span><span></span>
+  </button>
   <div class="links">
     <a href="/" class="link">Inicio</a>
     <a href="/servicios" class="link">Servicios</a>
@@ -41,6 +44,27 @@
     <a href="/login" class="btn-acceso">Acceso agentes</a>
   </div>
 </nav>
+<script>
+  function toggleNavMovil(e) {
+    e.stopPropagation();
+    var nav = document.querySelector('.pub-nav');
+    var abierto = nav.classList.toggle('nav-abierto');
+    e.currentTarget.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+  }
+  document.addEventListener('click', function (e) {
+    var nav = document.querySelector('.pub-nav');
+    if (nav && nav.classList.contains('nav-abierto') && !nav.contains(e.target)) {
+      nav.classList.remove('nav-abierto');
+      var btn = nav.querySelector('.pub-nav-toggle');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+  document.querySelectorAll('.pub-nav .links a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.querySelector('.pub-nav').classList.remove('nav-abierto');
+    });
+  });
+</script>
 
 {% block contenido %}{% endblock %}
 

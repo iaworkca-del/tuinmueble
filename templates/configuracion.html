@@ -32,6 +32,12 @@
   </div>
   {% endif %}
 
+  {% if error %}
+  <div class="card" style="border-left:4px solid #c0392b; background:#fdecea; color:#c0392b;">
+    ⚠ {{ error }}
+  </div>
+  {% endif %}
+
   <form action="/configuracion" method="post" enctype="multipart/form-data">
 
     <div class="card">
@@ -247,6 +253,27 @@
           <label for="email_agente">Correo electrónico</label>
           <input type="email" name="email_agente" id="email_agente"
                  value="{{ branding.email_agente }}" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Notificación de contactos (leads)</h2>
+      <p style="font-size:0.85rem; color:#888; margin-bottom:0.8rem;">
+        Cuando alguien te escribe desde tu sitio web, te avisamos por correo. Personaliza el asunto
+        y el mensaje de introducción; puedes usar estos marcadores y se rellenan automáticamente:
+        <code>{nombre}</code> <code>{telefono}</code> <code>{correo}</code> <code>{mensaje}</code> <code>{propiedad}</code>
+      </p>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="lead_email_asunto">Asunto del correo</label>
+          <input type="text" name="lead_email_asunto" id="lead_email_asunto"
+                 value="{{ branding.lead_email_asunto }}" placeholder="Nuevo contacto" />
+        </div>
+        <div class="form-group full">
+          <label for="lead_email_intro">Mensaje de introducción</label>
+          <textarea name="lead_email_intro" id="lead_email_intro" rows="2"
+                    placeholder="Tienes un nuevo contacto desde tu sitio web.">{{ branding.lead_email_intro }}</textarea>
         </div>
       </div>
     </div>
