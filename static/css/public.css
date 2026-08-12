@@ -75,17 +75,20 @@ body.publico {
   gap: 5px;
   width: 34px;
   height: 34px;
-  background: none;
+  background: rgba(0,0,0,0.28);
   border: none;
+  border-radius: 8px;
   cursor: pointer;
   padding: 0;
 }
 .pub-nav-toggle span {
   display: block;
-  width: 100%;
+  margin: 0 auto;
+  width: 60%;
   height: 2px;
   background: #fff;
   border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 @media (max-width: 800px) {
   .pub-nav-toggle { display: flex; }
@@ -260,6 +263,57 @@ body.publico {
 @media (max-width: 760px) {
   .pub-buscador-hero-campos { grid-template-columns: 1fr 1fr; }
   .pub-buscador-hero-btn { grid-column: 1 / -1; width: 100%; height: 44px; border-radius: 10px; }
+}
+
+/* ── Buscador (versión clara, para la página de Propiedades) ── */
+.pub-buscador {
+  background: #f6f7f5;
+  border: 1px solid #e6e6e2;
+  border-radius: 16px;
+  padding: 1.1rem 1.3rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.pub-buscador-tabs { display: flex; justify-content: center; gap: 0.5rem; }
+.pub-buscador-tabs input { position: absolute; opacity: 0; pointer-events: none; }
+.pub-buscador-tabs label {
+  cursor: pointer;
+  padding: 0.45rem 1.2rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--pub-primario);
+  background: #e9ebe5;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.pub-buscador-tabs input:checked + label { background: var(--pub-primario); color: #fff; }
+.pub-buscador-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.7rem;
+  align-items: center;
+}
+.pub-buscador-campos select,
+.pub-buscador-campos input[type="text"],
+.pub-buscador-campos input[type="number"] {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  background: #fff;
+  color: #232323;
+}
+.pub-buscador-campos button {
+  padding: 0.65rem 1.4rem;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .pub-buscador-campos { grid-template-columns: 1fr 1fr; }
+  .pub-buscador-campos button { grid-column: 1 / -1; }
 }
 
 /* ── Secciones ── */
