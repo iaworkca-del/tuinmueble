@@ -70,92 +70,31 @@
       <h2>Planes y Suscripciones — Orinokiagente</h2>
       <p>Elige el plan que mejor se adapta a tu inmobiliaria.</p>
     </div>
-    <div class="planes-grid" id="planesGrid"></div>
+    <div class="planes-grid" id="planesGrid">
+      {% for plan in get_planes_publicos() %}
+      <div class="plan-card{{ ' destacado' if plan.destacado else '' }}">
+        <div class="plan-nombre">{{ plan.nombre }}</div>
+        <div class="plan-tagline">{{ plan.tagline }}</div>
+        <div class="plan-precio">{{ plan.precio }}</div>
+        <span class="plan-precio-periodo">Mensual</span>
+        <a href="https://wa.me/584148960164?text={{ ('Hola! Quiero suscribirme al plan ' ~ plan.nombre ~ ' de Orinokiagente') | urlencode }}"
+           target="_blank" rel="noopener" class="plan-cta">Quiero este plan</a>
+        <ul class="plan-lista">
+          {% for item in plan['items'] %}
+          <li><span class="plan-check">✓</span>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
   </div>
 </div>
 
 <script>
-  let PLANES_ORINOKIAGENTE = [
-    {
-      nombre: 'Básico',
-      tagline: 'Para inmobiliarias que están empezando',
-      precio: 'USD$ 20',
-      destacado: false,
-      items: [
-        '🏠 1 Landing Page de la agencia', 'Hasta 20 propiedades publicadas', '🙋🏽 1 agente',
-        '🤖 Generador de descripciones con IA', '📋 Panel de administración de propiedades',
-        '📸 Galería de fotos por propiedad', '🔗 Enlace público de la agencia',
-        '✍🏼 Recibe consultas directo por WhatsApp',
-      ],
-    },
-    {
-      nombre: 'VIP',
-      tagline: 'Para agencias que quieren crecer 🔥',
-      precio: 'USD$ 35',
-      destacado: false,
-      items: [
-        '🏠 1 Landing Page de la agencia', 'Propiedades ilimitadas', '🙋🏽 Hasta 5 agentes',
-        '🤖 Generador de descripciones con IA (avanzado)', '📋 Panel de administración de propiedades',
-        '📸 Galería de fotos y videos por propiedad', '🔗 Enlace público de la agencia',
-        '✍🏼 Recibe consultas directo por WhatsApp', '📊 Estadísticas de visitas por propiedad',
-        '👥 Registro de clientes interesados',
-      ],
-    },
-    {
-      nombre: 'Plus',
-      tagline: 'Para inmobiliarias que quieren automatizar todo 🚀',
-      precio: 'USD$ 45',
-      destacado: true,
-      items: [
-        '🏠 1 Landing Page de la agencia', 'Propiedades ilimitadas', '🙋🏽 Hasta 5 agentes',
-        '🤖 Generador de descripciones con IA (avanzado)', '📋 Panel de administración de propiedades',
-        '📸 Galería de fotos y videos por propiedad', '🔗 Enlace público de la agencia',
-        '✍🏼 Recibe consultas directo por WhatsApp', '📊 Estadísticas de visitas por propiedad',
-        '👥 Registro de clientes interesados', '🤖 Generador de Contenido para Redes Sociales y WhatsApp',
-      ],
-    },
-  ];
-
-  function renderizarPlanesAgente() {
-    const grid = document.getElementById('planesGrid');
-    if (!grid) return;
-    grid.innerHTML = PLANES_ORINOKIAGENTE.map(plan => `
-      <div class="plan-card${plan.destacado ? ' destacado' : ''}">
-        <div class="plan-nombre">${plan.nombre}</div>
-        <div class="plan-tagline">${plan.tagline}</div>
-        <div class="plan-precio">${plan.precio}</div>
-        <span class="plan-precio-periodo">Mensual</span>
-        <a href="https://wa.me/584148960164?text=${encodeURIComponent('Hola! Quiero suscribirme al plan ' + plan.nombre + ' de Orinokiagente')}"
-           target="_blank" rel="noopener" class="plan-cta">Quiero este plan</a>
-        <ul class="plan-lista">
-          ${plan.items.map(i => `<li><span class="plan-check">✓</span>${i}</li>`).join('')}
-        </ul>
-      </div>
-    `).join('');
-  }
-
-  let planesAgenteCargados = false;
-
-  async function abrirPlanesAgente(e) {
+  function abrirPlanesAgente(e) {
     if (e) e.preventDefault();
     document.getElementById('planesOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
-    // Se pintan de una vez los planes por defecto (ya están en el HTML, sin
-    // esperar red) para que el modal nunca se vea vacío al abrirse.
-    renderizarPlanesAgente();
-    if (!planesAgenteCargados) {
-      try {
-        const resp = await fetch('/api/planes-publicos');
-        const data = await resp.json();
-        if (data.success && Array.isArray(data.planes) && data.planes.length) {
-          PLANES_ORINOKIAGENTE = data.planes;
-          renderizarPlanesAgente();
-        }
-      } catch (err) {
-        console.warn('No se pudieron cargar los planes desde el servidor, se muestran los de por defecto.', err);
-      }
-      planesAgenteCargados = true;
-    }
   }
   function cerrarPlanesAgente() {
     document.getElementById('planesOverlay').classList.remove('open');

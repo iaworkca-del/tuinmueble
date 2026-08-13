@@ -213,6 +213,7 @@ def _asset_version(ruta_relativa: str) -> str:
 
 
 templates.env.globals["asset_version"] = _asset_version
+templates.env.globals["get_planes_publicos"] = get_planes_publicos
 
 
 def _descarga(static_url: str) -> str:
