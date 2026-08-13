@@ -1694,13 +1694,21 @@ async def guardar_configuracion(
     fondo_dest = fondo_path_para_guardar(agente, nivel)
     plantilla_custom_dest = plantilla_custom_path_para_guardar(agente, nivel)
     if logo and logo.filename:
-        with logo_dest.open("wb") as f:
-            shutil.copyfileobj(logo.file, f)
+        try:
+            from PIL import Image
+            img = Image.open(logo.file).convert("RGBA")
+            img.thumbnail((480, 480))
+            img.save(str(logo_dest), "PNG", optimize=True)
+        except Exception:
+            with logo_dest.open("wb") as f:
+                logo.file.seek(0)
+                shutil.copyfileobj(logo.file, f)
     if fondo and fondo.filename:
         try:
             from PIL import Image
             img = Image.open(fondo.file).convert("RGB")
-            img.save(str(fondo_dest), "JPEG", quality=85)
+            img.thumbnail((1920, 1920))
+            img.save(str(fondo_dest), "JPEG", quality=82, optimize=True)
         except Exception:
             with fondo_dest.open("wb") as f:
                 fondo.file.seek(0)

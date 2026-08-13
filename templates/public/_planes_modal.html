@@ -140,19 +140,22 @@
     if (e) e.preventDefault();
     document.getElementById('planesOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
+    // Se pintan de una vez los planes por defecto (ya están en el HTML, sin
+    // esperar red) para que el modal nunca se vea vacío al abrirse.
+    renderizarPlanesAgente();
     if (!planesAgenteCargados) {
       try {
         const resp = await fetch('/api/planes-publicos');
         const data = await resp.json();
         if (data.success && Array.isArray(data.planes) && data.planes.length) {
           PLANES_ORINOKIAGENTE = data.planes;
+          renderizarPlanesAgente();
         }
       } catch (err) {
         console.warn('No se pudieron cargar los planes desde el servidor, se muestran los de por defecto.', err);
       }
       planesAgenteCargados = true;
     }
-    renderizarPlanesAgente();
   }
   function cerrarPlanesAgente() {
     document.getElementById('planesOverlay').classList.remove('open');
