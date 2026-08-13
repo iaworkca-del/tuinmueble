@@ -87,7 +87,7 @@
         <button type="submit" class="btn-primary" style="margin-top:1.6rem;">Ingresar</button>
       </form>
       <a href="/recuperar" class="login-volver" style="color:var(--azul); font-weight:600; margin-top:1rem;">¿Olvidó su contraseña?</a>
-      <a href="/" class="login-volver">← Volver al sitio público</a>
+      <a href="/" class="login-volver" onclick="if (window.history.length > 1 && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }">← Volver al sitio público</a>
     </div>
   </div>
 </body>
